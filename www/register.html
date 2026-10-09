@@ -1,0 +1,1212 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>RescueNet - Register</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: #ffffff;
+            color: #102d5c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .mobile-app {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: auto;
+            background: #ffffff;
+            border: 1px solid rgba(16, 45, 92, 0.10);
+            border-radius: 50px 50px 39px 39px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(16, 45, 92, 0.12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .register-section {
+            position: relative;
+            z-index: 3;
+            padding: 40px 24px 32px;
+            background: transparent;
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .register-section::-webkit-scrollbar {
+            display: none;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(16, 45, 92, 0.14);
+            background: #f6f9fd;
+            color: #102d5c;
+            text-decoration: none;
+            font-size: 17px;
+            margin-bottom: 24px;
+            transition: 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: #ff6500;
+            border-color: transparent;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .welcome {
+            margin-bottom: 22px;
+        }
+
+        .welcome .label {
+            color: #ff6500;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: inline-block;
+            background: rgba(255, 101, 0, 0.10);
+            border: 1px solid rgba(255, 101, 0, 0.16);
+            border-radius: 999px;
+            padding: 6px 10px;
+        }
+
+        .welcome h1 {
+            color: #102d5c;
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 7px;
+            letter-spacing: -0.04em;
+        }
+
+        .welcome p {
+            color: #5b7392;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(16, 45, 92, 0.85);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.04em;
+            transition: color 0.25s ease;
+        }
+
+        /* Label lights up while its field is focused */
+        .input-box:focus-within ~ label,
+        .form-group:focus-within > label {
+            color: #f0640e;
+        }
+
+        .input-box {
+            position: relative;
+        }
+
+        .input-box input {
+            width: 100%;
+            height: 52px;
+            border: 1px solid rgba(16, 45, 92, 0.14);
+            border-radius: 14px;
+            outline: none;
+            padding: 0 45px 0 42px;
+            font-size: 14px;
+            color: #102d5c;
+            background: #f6f9fd;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-box input::placeholder {
+            color: rgba(16, 45, 92, 0.4);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .input-box input:focus::placeholder {
+            opacity: 0.55;
+        }
+
+        .input-box input:focus {
+            border-color: #ff7b30;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 101, 0, 0.12);
+        }
+
+        /* Filled-field state */
+        .input-box input.filled {
+            border-color: rgba(34, 160, 76, 0.45);
+        }
+
+        .input-box input.filled:focus {
+            border-color: #ff7b30;
+            box-shadow: 0 0 0 4px rgba(255, 101, 0, 0.12);
+        }
+
+        /* Invalid-field state (live, after the user finishes typing) */
+        .input-box input.invalid {
+            border-color: rgba(214, 69, 69, 0.65);
+            box-shadow: 0 0 0 4px rgba(214, 69, 69, 0.10);
+        }
+
+        /* Checkmark shown when a field has a valid value */
+        .valid-mark {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%) scale(0.5);
+            width: 21px;
+            height: 21px;
+            border-radius: 50%;
+            background: rgba(34, 160, 76, 0.12);
+            color: #22a04c;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 21px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .valid-mark.show {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+        }
+
+        /* Password fields keep the eye button, so the check sits beside it */
+        .input-box:has(.show-password) .valid-mark {
+            right: 48px;
+        }
+
+        /* Inline helper messages */
+        .hint {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 7px;
+            font-size: 11px;
+            line-height: 1.4;
+            color: rgba(16, 45, 92, 0.5);
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease, opacity 0.25s ease, margin 0.25s ease;
+        }
+
+        .hint.visible {
+            max-height: 40px;
+            opacity: 1;
+        }
+
+        .hint.error {
+            color: #d64545;
+        }
+
+        .hint.ok {
+            color: #22a04c;
+        }
+
+        .icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: rgba(16, 45, 92, 0.5);
+            pointer-events: none;
+        }
+
+        .show-password {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            cursor: pointer;
+            color: rgba(16, 45, 92, 0.6);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .show-password:active {
+            /* Preserve vertical centering — universal `button:active` scale
+               used to override translateY(-50%) and make the eye jump over
+               the input border while pressed. */
+            transform: translateY(-50%) scale(0.96);
+        }
+
+        .show-password:hover {
+            background: rgba(255, 101, 0, 0.12);
+            color: #f0640e;
+        }
+
+        /* Hide native IE/Edge clear button and dark-mode password keys */
+        .input-box input::-ms-reveal,
+        .input-box input::-ms-clear {
+            display: none;
+        }
+
+        .name-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .terms {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            margin: 6px 0 18px;
+            color: #5b7392;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .terms input {
+            width: 15px;
+            height: 15px;
+            min-width: 15px;
+            margin-top: 1px;
+            accent-color: #ff7b30;
+            cursor: pointer;
+        }
+
+        .terms a {
+            color: #ff6500;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .submit-button {
+            width: 100%;
+            height: 54px;
+            border: none;
+            border-radius: 14px;
+            background: #ff6500;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 22px rgba(255, 101, 0, 0.22);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            letter-spacing: 0.04em;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.02);
+        }
+
+        .submit-button:active {
+            transform: translateY(0) scale(0.99);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 22px 0 18px;
+            color: rgba(16, 45, 92, 0.4);
+            font-size: 10px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            height: 1px;
+            background: rgba(16, 45, 92, 0.12);
+            flex: 1;
+        }
+
+        .login-link {
+            text-align: center;
+            color: #5b7392;
+            font-size: 13px;
+        }
+
+        .login-link a {
+            color: #102d5c;
+            text-decoration: none;
+            font-weight: 700;
+            margin-left: 3px;
+        }
+
+        .login-link a:hover {
+            color: #ff6500;
+        }
+
+        .security {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 20px;
+            color: rgba(16, 45, 92, 0.45);
+            font-size: 10px;
+            letter-spacing: 0.04em;
+        }
+
+        .security span {
+            color: #f0640e;
+        }
+
+        @media (max-height: 760px) {
+            .register-section {
+                padding-top: 30px;
+            }
+
+            .back-button {
+                margin-bottom: 20px;
+            }
+
+            .welcome {
+                margin-bottom: 18px;
+            }
+
+            .form-group {
+                margin-bottom: 11px;
+            }
+
+            .input-box input {
+                height: 46px;
+            }
+
+            .submit-button {
+                height: 49px;
+            }
+        }
+
+        @media (max-width: 350px) {
+            .register-section {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .welcome h1 {
+                font-size: 26px;
+            }
+
+            .name-row {
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 0;
+                align-items: stretch;
+            }
+
+            .mobile-app {
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                min-height: 100vh;
+                min-height: 100dvh;
+                border-radius: 0;
+                border: 0;
+                box-shadow: none;
+            }
+
+            .register-section {
+                padding: 30px 26px 36px;
+            }
+        }
+    </style>
+
+    <style>
+        /* Universal smooth interaction — hover lift, press scale, ripple */
+        button, a, .category label, .upload-box, .input-box, .submit-button, .back-button, .show-password {
+            transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.22s ease,
+                        background-color 0.2s ease,
+                        color 0.2s ease,
+                        border-color 0.2s ease,
+                        filter 0.2s ease;
+            will-change: transform;
+        }
+        button:active, a:active, .category label:active, .upload-box:active, .submit-button:active {
+            transform: scale(0.96);
+            transition: transform 0.08s ease;
+        }
+        /* Elements that use transform for positioning must keep it on :active */
+        .show-password:active {
+            transform: translateY(-50%) scale(0.96);
+            transition: transform 0.08s ease;
+        }
+        .rn-tap { position: relative; overflow: hidden; }
+        /* The tap ripple adds `.rn-tap` (position:relative) to every button,
+           which would otherwise knock the eye toggle out of the input's
+           absolutely-positioned slot and drop it below the field. */
+        .show-password.rn-tap { position: absolute; }
+        .rn-tap .rn-ripple {
+            position: absolute; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rnRipple 0.6s ease-out;
+            pointer-events: none;
+        }
+        @keyframes rnRipple { to { transform: scale(2.6); opacity: 0; } }
+        body { animation: rnPageIn 0.35s ease; }
+        @keyframes rnPageIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        (function () {
+            document.addEventListener('click', function (e) {
+                const target = e.target.closest('button, a, .category label, .upload-box');
+                if (!target) return;
+                target.classList.add('rn-tap');
+                const rect = target.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const ripple = document.createElement('span');
+                ripple.className = 'rn-ripple';
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+                target.appendChild(ripple);
+                setTimeout(function () { ripple.remove(); }, 600);
+            });
+            document.addEventListener('click', function (e) {
+                const link = e.target.closest('a[href]');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#')) return;
+                if (link.target === '_blank') return;
+                document.body.style.transition = 'opacity 0.18s ease';
+                document.body.style.opacity = '0.6';
+                setTimeout(function () { document.body.style.opacity = '1'; }, 350);
+            });
+        })();
+    </script>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+
+<body>
+
+<div class="mobile-app">
+
+    <!-- REGISTER SECTION -->
+    <div class="register-section">
+
+        <!-- BACK TO LOGIN -->
+        <a href="index.html" class="back-button">
+            ←
+        </a>
+
+
+        <!-- HEADER -->
+        <div class="welcome">
+
+            <h1>Create Account</h1>
+
+            <p>
+                Register to connect with your emergency response community.
+            </p>
+
+        </div>
+
+
+        <!-- REGISTER FORM -->
+        <form id="registerForm">
+
+            <!-- FIRST NAME + LAST NAME -->
+            <div class="name-row">
+
+                <div class="form-group">
+
+                    <label for="firstName">
+                        First Name
+                    </label>
+
+                    <div class="input-box">
+
+                        <svg
+                            class="icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2">
+
+                            <circle
+                                cx="12"
+                                cy="8"
+                                r="4">
+                            </circle>
+
+                            <path
+                                d="M4 21c0-4 3.5-7 8-7s8 3 8 7">
+                            </path>
+
+                        </svg>
+
+                        <input
+                            type="text"
+                            id="firstName"
+                            placeholder="First name"
+                            autocomplete="given-name"
+                            inputmode="text"
+                            required>
+
+                        <span class="valid-mark" id="firstNameMark">&#10003;</span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="lastName">
+                        Last Name
+                    </label>
+
+                    <div class="input-box">
+
+                        <svg
+                            class="icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2">
+
+                            <circle
+                                cx="12"
+                                cy="8"
+                                r="4">
+                            </circle>
+
+                            <path
+                                d="M4 21c0-4 3.5-7 8-7s8 3 8 7">
+                            </path>
+
+                        </svg>
+
+                        <input
+                            type="text"
+                            id="lastName"
+                            placeholder="Last name"
+                            autocomplete="family-name"
+                            inputmode="text"
+                            required>
+
+                        <span class="valid-mark" id="lastNameMark">&#10003;</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EMAIL -->
+            <div class="form-group">
+
+                <label for="email">
+                    Email Address
+                </label>
+
+                <div class="input-box">
+
+                    <svg
+                        class="icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <rect
+                            x="3"
+                            y="5"
+                            width="18"
+                            height="14"
+                            rx="2">
+                        </rect>
+
+                        <polyline points="3,7 12,13 21,7">
+                        </polyline>
+
+                    </svg>
+
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                        inputmode="email"
+                        required>
+
+                    <span class="valid-mark" id="emailMark">&#10003;</span>
+
+                </div>
+
+                <div class="hint" id="emailHint"></div>
+
+            </div>
+
+
+            <!-- PHONE -->
+            <div class="form-group">
+
+                <label for="phone">
+                    Mobile Number
+                </label>
+
+                <div class="input-box">
+
+                    <svg
+                        class="icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <rect
+                            x="6"
+                            y="2"
+                            width="12"
+                            height="20"
+                            rx="2">
+                        </rect>
+
+                        <line
+                            x1="10"
+                            y1="18"
+                            x2="14"
+                            y2="18">
+                        </line>
+
+                    </svg>
+
+                    <input
+                        type="tel"
+                        id="phone"
+                        placeholder="09XX XXX XXXX"
+                        autocomplete="tel"
+                        inputmode="numeric"
+                        maxlength="12"
+                        required>
+
+                    <span class="valid-mark" id="phoneMark">&#10003;</span>
+
+                </div>
+
+                <div class="hint" id="phoneHint"></div>
+
+            </div>
+
+
+            <!-- PASSWORD -->
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="input-box">
+
+                    <svg
+                        class="icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <rect
+                            x="4"
+                            y="10"
+                            width="16"
+                            height="11"
+                            rx="2">
+                        </rect>
+
+                        <path
+                            d="M8 10V7a4 4 0 0 1 8 0v3">
+                        </path>
+
+                    </svg>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Create a password"
+                        autocomplete="new-password"
+                        inputmode="text"
+                        required>
+
+                    <span class="valid-mark" id="passwordMark">&#10003;</span>
+
+                    <button
+                        type="button"
+                        class="show-password"
+                        id="passwordButton"
+                        onclick="togglePassword('password', 'passwordButton')">
+
+                        👁
+
+                    </button>
+
+                </div>
+
+                <div class="hint" id="passwordHint">Use at least 8 characters.</div>
+
+            </div>
+
+
+            <!-- CONFIRM PASSWORD -->
+            <div class="form-group">
+
+                <label for="confirmPassword">
+                    Confirm Password
+                </label>
+
+                <div class="input-box">
+
+                    <svg
+                        class="icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <rect
+                            x="4"
+                            y="10"
+                            width="16"
+                            height="11"
+                            rx="2">
+                        </rect>
+
+                        <path
+                            d="M8 10V7a4 4 0 0 1 8 0v3">
+                        </path>
+
+                    </svg>
+
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        placeholder="Confirm your password"
+                        autocomplete="new-password"
+                        inputmode="text"
+                        required>
+
+                    <span class="valid-mark" id="confirmPasswordMark">&#10003;</span>
+
+                    <button
+                        type="button"
+                        class="show-password"
+                        id="confirmButton"
+                        onclick="togglePassword('confirmPassword', 'confirmButton')">
+
+                        👁
+
+                    </button>
+
+                </div>
+
+                <div class="hint" id="confirmPasswordHint"></div>
+
+            </div>
+
+
+            <!-- TERMS -->
+            <label class="terms">
+
+                <input
+                    type="checkbox"
+                    id="terms"
+                    required>
+
+                <span>
+                    I agree to the
+                    <a href="#">Terms of Service</a>
+                    and
+                    <a href="#">Privacy Policy</a>
+                    of RescueNet.
+                </span>
+
+            </label>
+
+
+            <!-- SUBMIT -->
+            <button
+                type="submit"
+                class="submit-button">
+
+                Submit
+
+            </button>
+
+        </form>
+
+
+        <!-- DIVIDER -->
+        <div class="divider">
+            OR
+        </div>
+
+
+        <!-- LOGIN -->
+        <div class="login-link">
+
+            Already have an account?
+
+            <a href="index.html">
+                Sign In
+            </a>
+
+        </div>
+
+
+        <!-- SECURITY -->
+        <div class="security">
+
+            <span>🔒</span>
+
+            Your information is securely protected
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* PASSWORD SHOW / HIDE */
+
+    function togglePassword(inputId, buttonId) {
+
+        const password =
+            document.getElementById(inputId);
+
+        const button =
+            document.getElementById(buttonId);
+
+        if (password.type === "password") {
+
+            password.type = "text";
+            button.textContent = "🙈";
+
+        } else {
+
+            password.type = "password";
+            button.textContent = "👁";
+
+        }
+    }
+
+
+    /* LIVE FIELD FEEDBACK */
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function setFieldState(input, mark, hint, state, message) {
+
+        input.classList.toggle("filled", state === "ok");
+        input.classList.toggle("invalid", state === "error");
+
+        if (mark) {
+            mark.classList.toggle("show", state === "ok");
+        }
+
+        if (hint) {
+            hint.classList.toggle("visible", Boolean(message) || state !== "idle");
+            hint.classList.toggle("error", state === "error");
+            hint.classList.toggle("ok", state === "ok");
+
+            if (message) {
+                hint.textContent = message;
+            }
+        }
+    }
+
+    function validateName(id, markId) {
+
+        const input = document.getElementById(id);
+        const mark = document.getElementById(markId);
+
+        input.addEventListener("input", function() {
+
+            const valid = input.value.trim().length >= 2;
+            setFieldState(input, mark, null, valid ? "ok" : "idle");
+        });
+    }
+
+    validateName("firstName", "firstNameMark");
+    validateName("lastName", "lastNameMark");
+
+
+    /* EMAIL */
+
+    const emailInput = document.getElementById("email");
+    const emailMark = document.getElementById("emailMark");
+    const emailHint = document.getElementById("emailHint");
+
+    emailInput.addEventListener("input", function() {
+
+        const value = emailInput.value.trim();
+
+        if (!value) {
+            setFieldState(emailInput, emailMark, emailHint, "idle");
+            return;
+        }
+
+        if (emailPattern.test(value)) {
+            setFieldState(emailInput, emailMark, emailHint, "ok", "Looks good!");
+        } else {
+            setFieldState(emailInput, emailMark, emailHint, "idle");
+        }
+    });
+
+    emailInput.addEventListener("blur", function() {
+
+        const value = emailInput.value.trim();
+
+        if (value && !emailPattern.test(value)) {
+            setFieldState(emailInput, emailMark, emailHint, "error", "Please enter a valid email address.");
+        }
+    });
+
+
+    /* PHONE — auto-format as 09XX XXX XXXX */
+
+    const phoneInput = document.getElementById("phone");
+    const phoneMark = document.getElementById("phoneMark");
+    const phoneHint = document.getElementById("phoneHint");
+
+    phoneInput.addEventListener("input", function() {
+
+        const digits = phoneInput.value.replace(/\D/g, "").slice(0, 11);
+
+        let formatted = digits;
+
+        if (digits.length > 4) {
+            formatted = digits.slice(0, 4) + " " + digits.slice(4, 7);
+        }
+
+        if (digits.length > 7) {
+            formatted += " " + digits.slice(7, 11);
+        }
+
+        phoneInput.value = formatted;
+
+        if (digits.length === 11) {
+            setFieldState(phoneInput, phoneMark, phoneHint, "ok", "Number looks complete.");
+        } else if (digits.length > 0) {
+            setFieldState(phoneInput, phoneMark, phoneHint, "idle");
+        } else {
+            setFieldState(phoneInput, phoneMark, phoneHint, "idle");
+        }
+    });
+
+    phoneInput.addEventListener("blur", function() {
+
+        const digits = phoneInput.value.replace(/\D/g, "");
+
+        if (digits.length > 0 && digits.length !== 11) {
+            setFieldState(phoneInput, phoneMark, phoneHint, "error", "Phone number should be 11 digits.");
+        }
+    });
+
+
+    /* PASSWORD + CONFIRM */
+
+    const passwordInput = document.getElementById("password");
+    const passwordMark = document.getElementById("passwordMark");
+    const passwordHint = document.getElementById("passwordHint");
+
+    const confirmInput = document.getElementById("confirmPassword");
+    const confirmMark = document.getElementById("confirmPasswordMark");
+    const confirmHint = document.getElementById("confirmPasswordHint");
+
+    passwordInput.addEventListener("input", function() {
+
+        const value = passwordInput.value;
+
+        if (!value) {
+            setFieldState(passwordInput, passwordMark, passwordHint, "idle", "Use at least 8 characters.");
+            passwordHint.classList.remove("visible");
+        } else if (value.length >= 8) {
+            setFieldState(passwordInput, passwordMark, passwordHint, "ok", "Strong enough!");
+        } else {
+            setFieldState(passwordInput, passwordMark, passwordHint, "idle", (8 - value.length) + " more characters needed.");
+        }
+
+        checkMatch();
+    });
+
+    passwordInput.addEventListener("focus", function() {
+        passwordHint.classList.add("visible");
+    });
+
+    function checkMatch() {
+
+        const value = confirmInput.value;
+
+        if (!value) {
+            setFieldState(confirmInput, confirmMark, confirmHint, "idle");
+            return;
+        }
+
+        if (value === passwordInput.value) {
+            setFieldState(confirmInput, confirmMark, confirmHint, "ok", "Passwords match.");
+        } else {
+            setFieldState(confirmInput, confirmMark, confirmHint, "error", "Passwords do not match.");
+        }
+    }
+
+    confirmInput.addEventListener("input", checkMatch);
+
+
+    /* REGISTER */
+
+    document
+        .getElementById("registerForm")
+        .addEventListener("submit", function(event) {
+
+            event.preventDefault();
+
+
+            const firstName =
+                document.getElementById("firstName").value.trim();
+
+            const lastName =
+                document.getElementById("lastName").value.trim();
+
+            const email =
+                document.getElementById("email").value.trim();
+
+            const phone =
+                document.getElementById("phone").value.trim();
+
+            const password =
+                document.getElementById("password").value;
+
+            const confirmPassword =
+                document.getElementById("confirmPassword").value;
+
+            const terms =
+                document.getElementById("terms").checked;
+
+
+            /* PASSWORD CHECK */
+
+            if (password !== confirmPassword) {
+
+                alert("Passwords do not match.");
+
+                return;
+            }
+
+
+            /* PASSWORD LENGTH */
+
+            if (password.length < 8) {
+
+                alert("Password must contain at least 8 characters.");
+
+                return;
+            }
+
+
+            /* TERMS CHECK */
+
+            if (!terms) {
+
+                alert(
+                    "Please agree to the Terms of Service and Privacy Policy."
+                );
+
+                return;
+            }
+
+
+            /* SAVE USER INFORMATION TEMPORARILY */
+
+            sessionStorage.setItem(
+                "rescueFirstName",
+                firstName
+            );
+
+            sessionStorage.setItem(
+                "rescueLastName",
+                lastName
+            );
+
+            sessionStorage.setItem(
+                "rescueEmail",
+                email
+            );
+
+            sessionStorage.setItem(
+                "rescuePhone",
+                phone
+            );
+
+
+            /*
+                GO TO OTP PAGE
+            */
+
+            window.location.href = "otp.html";
+
+        });
+
+</script>
+
+</body>
+</html>

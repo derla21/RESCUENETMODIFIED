@@ -1,0 +1,309 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RescueNet Landing</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #101828;
+            padding: 20px;
+        }
+
+        .mobile-app {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+            min-height: 0;
+            border: 1px solid rgba(17, 24, 39, 0.08);
+            border-radius: 50px 50px 39px 39px;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+        }
+
+        .mobile-app::before,
+        .mobile-app::after {
+            display: none;
+        }
+
+        #map {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            background-image: url('taculings.jpg');
+            background-size: cover;
+            background-position: center 5%;
+            background-repeat: no-repeat;
+            filter: blur(0.6px) saturate(1.03) brightness(1);
+            transform: scale(1.04);
+        }
+
+        #map::before,
+        #map::after {
+            display: none;
+        }
+
+        #map::before {
+            display: none;
+        }
+
+        #map::after {
+            display: none;
+        }
+
+        .map-overlay {
+            display: none;
+        }
+
+        .topbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 16px;
+            pointer-events: none;
+        }
+
+        .logo-wrap {
+            position: absolute;
+            top: 24px;
+            left: 0;
+        }
+
+        .logo-wrap img {
+            display: block;
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+        }
+
+        .brand-text {
+            font-size: 3.1rem;
+            letter-spacing: 0.08rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-top: 136px;
+            line-height: 1;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        }
+
+        .brand-tagline {
+            max-width: 360px;
+            margin-top: 0.65rem;
+            color: #0f3d7a;
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.35;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+        }
+
+        .brand-blue {
+            color: #0f3d7a;
+        }
+
+        .brand-orange {
+            color: #f28c28;
+        }
+
+        .about-link {
+            pointer-events: auto;
+            display: inline-block;
+            padding: 0.45rem 0.85rem;
+            border: 1px solid #0f3d7a;
+            border-radius: 999px;
+            color: #0f3d7a;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            font-size: 0.9rem;
+            font-weight: 800;
+            letter-spacing: 0.04rem;
+            text-decoration: none;
+            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.8);
+        }
+
+        .get-started {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            bottom: 32px;
+            z-index: 4;
+            width: calc(100% - 40px);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 54px;
+            padding: 0.8rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.75);
+            border-radius: 999px;
+            background: #f28c28;
+            color: #ffffff;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            font-size: 0.86rem;
+            font-weight: 800;
+            letter-spacing: 0.08rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .get-started:hover {
+            background: #ff9d3d;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .get-started:active {
+            transform: translateY(1px);
+        }
+
+        .get-started .button-arrow {
+            position: absolute;
+            right: 1.15rem;
+            display: grid;
+            width: 30px;
+            height: 30px;
+            place-items: center;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1;
+            text-indent: 1px;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.45), 0 2px 6px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(4px);
+        }
+
+        .top-actions {
+            position: absolute;
+            top: 40px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.75rem;
+        }
+
+        .content,
+        .floating-card {
+            display: none;
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 0;
+                width: 100vw;
+                height: 100dvh;
+            }
+
+            .mobile-app {
+                width: 100vw;
+                height: 100dvh;
+                min-height: 0;
+                border: 0;
+                border-radius: 0;
+            }
+
+            .topbar {
+                padding: calc(16px + env(safe-area-inset-top)) 16px 16px;
+            }
+
+            .brand-text {
+                font-size: clamp(2rem, 10.5vw, 3.1rem);
+            }
+
+            .brand-tagline {
+                max-width: min(250px, 62vw);
+                font-size: clamp(0.72rem, 3.2vw, 0.82rem);
+            }
+
+            .logo-wrap {
+                top: calc(16px + env(safe-area-inset-top));
+            }
+
+            .logo-wrap img {
+                width: clamp(72px, 22vw, 96px);
+                height: clamp(72px, 22vw, 96px);
+            }
+
+            .top-actions {
+                top: calc(32px + env(safe-area-inset-top));
+                right: 16px;
+            }
+
+            .get-started {
+                left: 16px;
+                right: 16px;
+                bottom: calc(16px + env(safe-area-inset-bottom));
+                width: calc(100% - 32px);
+                min-height: 52px;
+            }
+
+            .get-started .button-arrow {
+                right: 0.85rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+    <div class="mobile-app">
+        <div id="map" aria-label="OpenStreetMap service area"></div>
+        <div class="map-overlay" aria-hidden="true"></div>
+
+        <div class="topbar">
+            <div>
+                <div class="logo-wrap">
+                    <img src="logs.png" alt="RescueNet logo" />
+                </div>
+                <div class="brand-text">
+                    <span class="brand-blue">RESCUE</span><span class="brand-orange">NET</span>
+                </div>
+                <div class="brand-tagline">Barangay-based Disaster management and Emergency response</div>
+            </div>
+            <div class="top-actions">
+                <a class="about-link" href="register.html">SIGN UP</a>
+            </div>
+        </div>
+
+        <button class="get-started" type="button">
+            <span>GET STARTED</span><span class="button-arrow" aria-hidden="true">&gt;</span>
+        </button>
+
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,877 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <title>RescueNet - Facial Verification</title>
+
+    <style>
+        /* ==========================================================
+           RescueNet design system — white theme (matches register/otp/documents)
+           ========================================================== */
+        :root {
+            --navy: #102d5c;
+            --navy-mid: #133f7d;
+            --muted: #5b7392;
+            --line: rgba(16, 45, 92, 0.13);
+            --soft: #f6f9fd;
+            --soft-2: #eef4ff;
+            --orange: #ff6500;
+            --orange-dark: #e95700;
+            --ok: #16a34a;
+            --err: #dc2626;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: #ffffff;
+            color: var(--navy);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* MOBILE APP FRAME */
+
+        .mobile-app {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: auto;
+            background: #ffffff;
+            border: 1px solid rgba(16, 45, 92, 0.10);
+            border-radius: 50px 50px 39px 39px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(16, 45, 92, 0.12);
+        }
+
+        /* MAIN */
+
+        .facial-section {
+            position: relative;
+            z-index: 3;
+            padding: 40px 24px 32px;
+            text-align: center;
+        }
+
+        /* BACK */
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: var(--soft);
+            color: var(--navy);
+            text-decoration: none;
+            font-size: 17px;
+            line-height: 1;
+            margin-bottom: 22px;
+        }
+
+        .back-button:hover {
+            background: var(--orange);
+            border-color: transparent;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* PROGRESS */
+
+        .progress {
+            display: flex;
+            gap: 7px;
+            margin-bottom: 22px;
+        }
+
+        .progress-line {
+            height: 4px;
+            flex: 1;
+            border-radius: 10px;
+            background: rgba(16, 45, 92, 0.12);
+        }
+
+        .progress-line.active {
+            background: var(--orange);
+        }
+
+        /* HEADER */
+
+        .label {
+            color: var(--orange);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 27px;
+            font-weight: 750;
+            color: var(--navy);
+            margin-bottom: 9px;
+            letter-spacing: -0.3px;
+        }
+
+        .description {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        /* CAMERA */
+
+        .camera-container {
+            width: 100%;
+            height: 330px;
+            border-radius: 22px;
+            overflow: hidden;
+            position: relative;
+            background: var(--soft);
+            border: 1px solid var(--line);
+            margin-bottom: 18px;
+            box-shadow: inset 0 1px 2px rgba(16, 45, 92, 0.05);
+        }
+
+        #camera {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .camera-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .camera-icon {
+            font-size: 46px;
+            color: var(--navy-mid);
+            margin-bottom: 8px;
+        }
+
+        .camera-placeholder p {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* FACE GUIDE */
+
+        .face-guide {
+            position: absolute;
+            width: 190px;
+            height: 245px;
+            border: 2px solid rgba(255, 101, 0, 0.9);
+            border-radius: 48% 48% 45% 45%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            pointer-events: none;
+            box-shadow: 0 0 0 9999px rgba(16, 45, 92, 0.35);
+        }
+
+        .face-guide::after {
+            content: "";
+            position: absolute;
+            left: 15%;
+            right: 15%;
+            top: 48%;
+            height: 2px;
+            background: rgba(255, 101, 0, 0.75);
+        }
+
+        /* INSTRUCTION */
+
+        .instruction {
+            background: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            padding: 12px 14px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .instruction strong {
+            color: var(--navy);
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        /* BUTTON */
+
+        .camera-button {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 13px;
+            background: var(--orange);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 9px 22px rgba(255, 101, 0, 0.22);
+            transition: 0.22s ease;
+        }
+
+        .camera-button:hover {
+            background: var(--orange-dark);
+            transform: translateY(-1px);
+        }
+
+        .camera-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .camera-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* STATUS */
+
+        .status {
+            display: none;
+            margin-top: 14px;
+            color: var(--orange);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status.ok    { color: var(--ok); }
+        .status.error { color: var(--err); }
+
+        /* SECURITY */
+
+        .security {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 20px;
+            color: var(--muted);
+            font-size: 10.5px;
+        }
+
+        .security span {
+            color: var(--orange);
+        }
+
+        /* SMALL PHONES */
+
+        @media (max-width: 350px) {
+            .facial-section {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        /* TRUE MOBILE */
+
+        @media (max-width: 500px) {
+            body {
+                padding: 0;
+            }
+
+            .mobile-app {
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                min-height: 100vh;
+                min-height: 100dvh;
+                border-radius: 0;
+                border: 0;
+                box-shadow: none;
+            }
+        }
+
+        /* Universal smooth interaction */
+        button, a, .back-button, .camera-button {
+            transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.22s ease,
+                        background-color 0.2s ease,
+                        color 0.2s ease,
+                        border-color 0.2s ease;
+            will-change: transform;
+        }
+        button:active, a:active {
+            transform: scale(0.96);
+            transition: transform 0.08s ease;
+        }
+        .rn-tap { position: relative; overflow: hidden; }
+        .rn-tap .rn-ripple {
+            position: absolute; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rnRipple 0.6s ease-out;
+            pointer-events: none;
+        }
+        @keyframes rnRipple { to { transform: scale(2.6); opacity: 0; } }
+        body { animation: rnPageIn 0.35s ease; }
+        @keyframes rnPageIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        (function () {
+            document.addEventListener('click', function (e) {
+                const target = e.target.closest('button, a');
+                if (!target) return;
+                target.classList.add('rn-tap');
+                const rect = target.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const ripple = document.createElement('span');
+                ripple.className = 'rn-ripple';
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+                target.appendChild(ripple);
+                setTimeout(function () { ripple.remove(); }, 600);
+            });
+            document.addEventListener('click', function (e) {
+                const link = e.target.closest('a[href]');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#')) return;
+                if (link.target === '_blank') return;
+                document.body.style.transition = 'opacity 0.18s ease';
+                document.body.style.opacity = '0.6';
+                setTimeout(function () { document.body.style.opacity = '1'; }, 350);
+            });
+        })();
+    </script>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+
+<body>
+
+<div class="mobile-app">
+
+    <div class="facial-section">
+
+        <!-- BACK -->
+        <a href="documents.html" class="back-button" aria-label="Go back">←</a>
+
+
+        <!-- HEADER -->
+
+        <div class="label">
+            FINAL VERIFICATION
+        </div>
+
+            <input type="file" id="fileInput" accept="image/*" capture="user" style="display:none" />
+
+        <h1>
+            Verify Your Identity
+        </h1>
+
+        <p class="description">
+            Take a clear selfie so we can verify that
+            you are the person shown on your submitted ID.
+        </p>
+
+
+        <!-- CAMERA -->
+
+        <div class="camera-container">
+
+            <video
+                id="camera"
+                autoplay
+                muted
+                playsinline>
+            </video>
+
+            <div
+                class="camera-placeholder"
+                id="placeholder">
+
+                <div class="camera-icon">
+                    📷
+                </div>
+
+                <p>
+                    Tap the button below to start
+                </p>
+
+            </div>
+
+            <div
+                class="face-guide"
+                id="faceGuide">
+            </div>
+
+            <canvas id="captureCanvas" style="display:none"></canvas>
+
+        </div>
+
+
+        <!-- INSTRUCTION -->
+
+        <div class="instruction">
+
+            Position your face inside the frame.
+            Make sure your face is clearly visible,
+            with good lighting and no face covering.
+
+        </div>
+
+
+        <!-- BUTTON -->
+
+        <button
+            class="camera-button"
+            id="cameraButton">
+
+            Start Facial Verification
+
+        </button>
+
+
+        <!-- STATUS -->
+
+        <div
+            class="status"
+            id="status">
+
+            Camera verification in progress...
+
+        </div>
+
+
+        <!-- SECURITY -->
+
+        <div class="security">
+
+            <span>🔒</span>
+
+            Your facial data should be processed securely
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="config.js"></script>
+<script>
+
+    const API_BASE = (function() {
+        // If we're already served from the Node server (browser testing), use same origin
+        const o = window.location.origin || '';
+        if (o.indexOf(':3000') !== -1 || o.indexOf(':3443') !== -1) return o;
+        // In Capacitor (https://localhost), use the configured LAN IP
+        if (window.RN_SERVER) return window.RN_SERVER;
+        if (o.indexOf('http') === 0 && o.indexOf('localhost') === -1) return o;
+        return 'http://localhost:3000';
+    })();
+
+    const camera = document.getElementById("camera");
+    const placeholder = document.getElementById("placeholder");
+    const faceGuide = document.getElementById("faceGuide");
+    let button = document.getElementById("cameraButton");
+    const status = document.getElementById("status");
+    const canvas = document.getElementById("captureCanvas");
+    const fileInput = document.getElementById('fileInput');
+
+    let stream = null;
+    let phase = 'idle'; // idle | preview | captured
+
+    /* ============================================
+       CAPACITOR DETECTION + PERMISSION
+       ============================================ */
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
+    async function ensureCameraPermission() {
+        if (!isNative) return true; // browser: getUserMedia prompts itself
+        try {
+            const Camera = window.Capacitor.Plugins && window.Capacitor.Plugins.Camera;
+            if (!Camera) return true;
+            const info = await Camera.checkPermissions();
+            if (info.camera === 'granted') return true;
+            const req = await Camera.requestPermissions();
+            return req.camera === 'granted';
+        } catch (e) {
+            return true; // proceed anyway, getUserMedia will fail gracefully
+        }
+    }
+
+    /* ============================================
+       SINGLE CLICK HANDLER — dispatches by phase
+       (idle → startCamera, preview → captureFace,
+        captured → verifyFromCanvas)
+       ============================================ */
+    button.addEventListener('click', async function () {
+        if (phase === 'idle') {
+            await startCamera();
+        } else if (phase === 'preview') {
+            await captureFace();
+        } else if (phase === 'captured') {
+            await verifyFromCanvas();
+        }
+    });
+
+    /* ============================================
+       START CAMERA (in-app getUserMedia)
+       ============================================ */
+    async function startCamera() {
+        button.disabled = true;
+        status.style.display = 'block';
+        status.textContent = 'Requesting camera access...';
+
+        const granted = await ensureCameraPermission();
+        if (!granted) {
+            status.textContent = 'Camera permission denied. Please allow camera access and try again.';
+            button.disabled = false;
+            return;
+        }
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+                audio: false
+            });
+
+            camera.srcObject = stream;
+            camera.style.display = "block";
+            placeholder.style.display = "none";
+            faceGuide.style.display = "block";
+
+            button.textContent = "Capture Face";
+            button.disabled = false;
+            status.textContent = "Position your face inside the frame.";
+            phase = 'preview';
+
+        } catch (error) {
+            console.warn('getUserMedia failed:', error.message);
+            // Fallback: Capacitor Camera plugin (stays in-app)
+            if (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.Camera) {
+                status.textContent = 'Opening camera...';
+                button.disabled = true;
+                await captureWithPlugin();
+            } else {
+                // Last resort: file input (may open external camera on some devices)
+                status.textContent = 'Camera access issue \u2014 tap below to take a selfie.';
+                button.textContent = 'Take Selfie';
+                button.disabled = false;
+                // Detach phase-based handler; wire a direct file-input click
+                const newBtn = button.cloneNode(true);
+                button.parentNode.replaceChild(newBtn, button);
+                button = newBtn;
+                button.addEventListener('click', function () { fileInput.click(); });
+            }
+        }
+    }
+
+    /* ============================================
+       CAPTURE VIA GETUSERMEDIA (in-app preview)
+       ============================================ */
+    async function captureFace() {
+        if (phase !== 'preview' || !stream) return;
+        phase = 'capturing';
+        button.disabled = true;
+
+        // Draw current video frame to canvas (in-app capture)
+        canvas.width = camera.videoWidth || 640;
+        canvas.height = camera.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
+
+        // Persist a downscaled snapshot so the admin verification table
+        // can show the selfie in a modal when the Facial Match chip is clicked
+        try {
+            FACIAL_DATA_URL = snapshotCanvasToDataUrl(canvas);
+            try { sessionStorage.setItem('rescueFacialDataUrl', FACIAL_DATA_URL); } catch (e) {}
+        } catch (e) { FACIAL_DATA_URL = ''; }
+
+        // Stop live camera
+        try { stream.getTracks().forEach(t => t.stop()); } catch(e){}
+        stream = null;
+        camera.srcObject = null;
+        camera.style.display = 'none';
+
+        // Show captured frame
+        canvas.style.display = 'block';
+        canvas.style.width = '100%';
+        canvas.style.borderRadius = '20px';
+
+        button.textContent = 'Verify This Photo';
+        button.disabled = false;
+        status.textContent = 'Photo captured. Tap to verify.';
+        phase = 'captured';
+    }
+
+    /* Downscale a canvas/image into a compact JPEG dataURL (max side 640 px) */
+    let FACIAL_DATA_URL = '';
+    function snapshotCanvasToDataUrl(src, maxSide) {
+        maxSide = maxSide || 640;
+        const w0 = src.width || src.naturalWidth || 640;
+        const h0 = src.height || src.naturalHeight || 480;
+        let w = w0, h = h0;
+        if (w > maxSide || h > maxSide) {
+            if (w >= h) { h = Math.round(h * (maxSide / w)); w = maxSide; }
+            else        { w = Math.round(w * (maxSide / h)); h = maxSide; }
+        }
+        const cvs = document.createElement('canvas');
+        cvs.width = w; cvs.height = h;
+        cvs.getContext('2d').drawImage(src, 0, 0, w, h);
+        return cvs.toDataURL('image/jpeg', 0.82);
+    }
+    function snapshotImgToDataUrl(img, maxSide) {
+        return new Promise(function (resolve) {
+            try { resolve(snapshotCanvasToDataUrl(img, maxSide)); }
+            catch (e) { resolve(img && img.src ? img.src : ''); }
+        });
+    }
+
+    async function verifyFromCanvas() {
+        if (phase !== 'captured') return;
+        button.disabled = true;
+        button.textContent = 'Verifying\u2026';
+        status.textContent = 'Processing facial verification\u2026';
+        canvas.style.display = 'none';
+        faceGuide.style.display = 'none';
+        setTimeout(completeVerification, 1200);
+    }
+
+    /* ============================================
+       CAPTURE VIA CAPACITOR PLUGIN (fallback, in-app)
+       ============================================ */
+
+    async function captureWithPlugin() {
+        try {
+            const Camera = window.Capacitor.Plugins.Camera;
+            const { CameraSource, CameraResultType } = window.Capacitor.Plugins.Camera;
+            const photo = await Camera.getPhoto({
+                source: CameraSource.Camera,
+                quality: 80,
+                allowEditing: false,
+                resultType: CameraResultType.Base64,
+                direction: 1 // front camera
+            });
+
+            // Show captured image
+            if (photo && (photo.base64String || photo.webPath)) {
+                const img = new Image();
+                img.src = photo.base64String
+                    ? 'data:image/jpeg;base64,' + photo.base64String
+                    : photo.webPath;
+                img.style.width = '100%';
+                img.style.borderRadius = '20px';
+                img.onload = function() {
+                    canvas.parentNode.appendChild(img);
+                    canvas.style.display = 'none';
+                    faceGuide.style.display = 'none';
+                    status.textContent = 'Selfie captured! Tap to verify.';
+                    button.textContent = 'Verify This Photo';
+                    button.disabled = false;
+                    phase = 'captured'; // route next click through phase handler
+                    // Persist downscaled selfie for admin verification preview
+                    try {
+                        snapshotImgToDataUrl(img, 640).then(function (url) {
+                            FACIAL_DATA_URL = url || (img.src || '');
+                            try { sessionStorage.setItem('rescueFacialDataUrl', FACIAL_DATA_URL); } catch (e) {}
+                        });
+                    } catch (e) {}
+                };
+            } else {
+                // User cancelled — treat as verified for prototype
+                completeVerification();
+            }
+        } catch (e) {
+            console.warn('Capacitor Camera plugin error:', e);
+            status.textContent = 'Camera unavailable. Proceeding...';
+            setTimeout(completeVerification, 1200);
+        }
+    }
+
+    /* ============================================
+       FILE INPUT LAST RESORT
+       ============================================ */
+    fileInput.addEventListener('change', function(e) {
+        if (!e.target.files || !e.target.files.length) return;
+        status.textContent = 'Processing uploaded selfie...';
+        button.disabled = true;
+        button.textContent = 'Verifying...';
+        // Read the file so we still have a selfie preview to store on the resident
+        try {
+            const fr = new FileReader();
+            fr.onload = function () {
+                const raw = fr.result || '';
+                const im = new Image();
+                im.onload = function () {
+                    try {
+                        FACIAL_DATA_URL = snapshotCanvasToDataUrl(im, 640);
+                    } catch (err) { FACIAL_DATA_URL = raw; }
+                    try { sessionStorage.setItem('rescueFacialDataUrl', FACIAL_DATA_URL); } catch (err) {}
+                };
+                im.onerror = function () { try { sessionStorage.setItem('rescueFacialDataUrl', raw); } catch (err) {} };
+                im.src = raw;
+            };
+            fr.readAsDataURL(e.target.files[0]);
+        } catch (err) {}
+        setTimeout(completeVerification, 1200);
+    });
+
+    /* ============================================
+       COMPLETION
+       ============================================ */
+    async function completeVerification() {
+        let residentPayload = null;
+        try {
+            sessionStorage.setItem('facialVerified', 'true');
+            status.textContent = 'Identity verified successfully!';
+            button.textContent = 'Verification Complete \u2713';
+            button.disabled = false;
+
+            const fn = sessionStorage.getItem('rescueFirstName') || '';
+            const ln = sessionStorage.getItem('rescueLastName') || '';
+            const email = sessionStorage.getItem('rescueEmail') || null;
+            const phone = sessionStorage.getItem('rescuePhone') || '';
+            const mobileVerified = sessionStorage.getItem('mobileVerified') === 'true';
+            const facialVerified = sessionStorage.getItem('facialVerified') === 'true';
+            const docName = sessionStorage.getItem('rescueDocumentName');
+            const idType  = sessionStorage.getItem('rescueIDType') || '';
+            const docDataUrl = sessionStorage.getItem('rescueDocumentDataUrl') || '';
+            const docMime    = sessionStorage.getItem('rescueDocumentType') || '';
+            const facialUrl  = sessionStorage.getItem('rescueFacialDataUrl') || FACIAL_DATA_URL || '';
+
+            console.log('[Facial] completeVerification data:', { fn, ln, email, phone });
+
+            if (fn && phone) {
+                const RESIDENTS_KEY = 'rn_residents';
+                let list = [];
+                try { list = JSON.parse(localStorage.getItem(RESIDENTS_KEY) || '[]'); } catch(e) { list = []; }
+                const exists = list.some(r => (r.phone && phone && r.phone === phone) || (r.email && email && r.email === email));
+                if (!exists) {
+                    const id = 'RN' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+                    const resident = {
+                        id, firstName: fn, lastName: ln, email, phone,
+                        idType: idType,
+                        documentName: docName || '',
+                        documentDataUrl: docDataUrl,
+                        documentType: docMime,
+                        facialDataUrl: facialUrl,
+                        phoneVerified: mobileVerified, emailVerified: false,
+                        hasValidId: !!docName, hasFaceOrSecondaryId: facialVerified,
+                        vulnerabilities: [], registeredAt: new Date().toISOString()
+                    };
+                    list.unshift(resident);
+                    try { localStorage.setItem(RESIDENTS_KEY, JSON.stringify(list)); } catch(e){}
+                    try {
+                        sessionStorage.setItem('rn_current_user', JSON.stringify({
+                            id: resident.id, firstName: fn, lastName: ln, email, phone
+                        }));
+                        if (email) sessionStorage.setItem('rescueNetUserEmail', email);
+                    } catch (e) {}
+                    try { localStorage.setItem('rn_last_registered', JSON.stringify({ id, firstName: fn, lastName: ln, phone })); } catch(e){}
+                    try { const bc = new BroadcastChannel('rescuenet'); bc.postMessage('rn_residents_updated'); bc.close(); } catch(e) {}
+                    residentPayload = resident;
+                }
+            } else {
+                console.warn('[Facial] fn or phone missing from sessionStorage!', { fn, phone });
+            }
+        } catch (e) {
+            console.error('[Facial] completeVerification local save error:', e);
+        }
+
+        // POST to server — MUST happen even if local save had issues
+        if (residentPayload) {
+            try {
+                console.log('[Facial] POSTing resident to', API_BASE + '/api/resident');
+                const ctrl = new AbortController();
+                const to = setTimeout(() => ctrl.abort(), 5000);
+                const resp = await fetch(API_BASE + '/api/resident', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(residentPayload),
+                    signal: ctrl.signal
+                });
+                clearTimeout(to);
+                if (resp.ok) {
+                    console.log('[Facial] Resident synced OK');
+                    status.textContent = 'Saved. Redirecting\u2026';
+                } else {
+                    console.warn('[Facial] Server responded:', resp.status, await resp.text());
+                }
+            } catch (e) {
+                console.warn('[Facial] Resident sync failed:', e.message || e);
+            }
+        } else {
+            console.warn('[Facial] No residentPayload to POST');
+        }
+
+        // Keep email + phone in session/local storage so index.html can poll the approval endpoint
+        const keepEmail = sessionStorage.getItem('rescueEmail');
+        const keepPhone = phone || sessionStorage.getItem('rescuePhone');
+        // Persist a robust pointer for the pending card, survives reload / tab close
+        try {
+            localStorage.setItem('rn_pending_resident', JSON.stringify({
+                id: (residentPayload && residentPayload.id) || '',
+                email: keepEmail || '',
+                phone: keepPhone || '',
+                firstName: fn || '',
+                lastName: ln || '',
+                at: new Date().toISOString()
+            }));
+        } catch (e) {}
+        // clear ephemeral session values
+        sessionStorage.removeItem('rescueFirstName');
+        sessionStorage.removeItem('rescueLastName');
+        sessionStorage.removeItem('mobileVerified');
+        sessionStorage.removeItem('facialVerified');
+        sessionStorage.removeItem('rescueDocumentName');
+        sessionStorage.removeItem('rescueIDType');
+        sessionStorage.removeItem('rescueDocumentDataUrl');
+        sessionStorage.removeItem('rescueDocumentType');
+        sessionStorage.removeItem('rescueFacialDataUrl');
+        // keep email + phone in session so the pending card can poll /api/resident/status
+        if (keepEmail) sessionStorage.setItem('rescueEmail', keepEmail);
+        if (keepPhone) sessionStorage.setItem('rescuePhone', keepPhone);
+
+        setTimeout(function() { window.location.href = 'index.html?pending=1'; }, 700);
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "_comment": "Copy this file to sms-config.json. Get these from https://dashboard.vonage.com (Settings → API Key & Secrets). If you leave this file missing or with PLACEHOLDERS, the server will use DEV-LOG mode and print the SMS body in the terminal instead of actually sending it (no cost, good for testing). Vonage offers ~EUR 2 free credit on signup. Sender 'from' can be up to 11 chars alphanumeric (e.g. RescueNet).",
+  "apiKey": "REPLACE_WITH_VONAGE_API_KEY",
+  "apiSecret": "REPLACE_WITH_VONAGE_API_SECRET",
+  "from": "RescueNet"
+}

@@ -1,0 +1,820 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RescueNet - Identity Documents</title>
+
+    <style>
+
+        /* ==========================================================
+           RescueNet design system — white theme (matches register/otp)
+           ========================================================== */
+        :root {
+            --navy: #102d5c;
+            --navy-mid: #133f7d;
+            --muted: #5b7392;
+            --line: rgba(16, 45, 92, 0.13);
+            --soft: #f6f9fd;
+            --soft-2: #eef4ff;
+            --orange: #ff6500;
+            --orange-dark: #e95700;
+            --ok: #16a34a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: #ffffff;
+            color: var(--navy);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* MOBILE APP */
+
+        .mobile-app {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: auto;
+            background: #ffffff;
+            border: 1px solid rgba(16, 45, 92, 0.10);
+            border-radius: 50px 50px 39px 39px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(16, 45, 92, 0.12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* MAIN */
+
+        .document-section {
+            position: relative;
+            z-index: 3;
+            padding: 40px 24px 32px;
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .document-section::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* BACK */
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: var(--soft);
+            color: var(--navy);
+            text-decoration: none;
+            font-size: 17px;
+            line-height: 1;
+            margin-bottom: 22px;
+            transition: 0.18s ease;
+        }
+
+        .back-button:hover {
+            background: var(--soft-2);
+            border-color: var(--navy-mid);
+        }
+
+        /* PROGRESS */
+
+        .progress {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 22px;
+        }
+
+        .progress-line {
+            height: 4px;
+            flex: 1;
+            border-radius: 10px;
+            background: rgba(16, 45, 92, 0.12);
+        }
+
+        .progress-line.active {
+            background: var(--orange);
+        }
+
+        /* HEADER */
+
+        .label {
+            color: var(--orange);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 27px;
+            font-weight: 750;
+            color: var(--navy);
+            margin-bottom: 9px;
+            letter-spacing: -0.3px;
+        }
+
+        .description {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        /* SECTION TITLE */
+
+        .section-title {
+            color: var(--navy);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        /* CATEGORY */
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+            margin-bottom: 22px;
+        }
+
+        .category {
+            position: relative;
+        }
+
+        .category input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .category label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 86px;
+            padding: 10px 5px;
+            text-align: center;
+            border-radius: 13px;
+            border: 1px solid var(--line);
+            background: var(--soft);
+            color: var(--navy);
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .category label:hover {
+            border-color: rgba(255, 101, 0, 0.5);
+            background: #fff8f2;
+        }
+
+        .category input:checked + label {
+            border-color: var(--orange);
+            background: #fff3e8;
+            box-shadow: 0 4px 14px rgba(255, 101, 0, 0.18);
+        }
+
+        .category-icon {
+            font-size: 23px;
+            margin-bottom: 6px;
+        }
+
+        .category-name {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        /* UPLOAD BOX */
+
+        .upload-box {
+            display: block;
+            border: 1.5px dashed rgba(19, 63, 125, 0.32);
+            border-radius: 15px;
+            background: var(--soft);
+            padding: 26px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s ease;
+            margin-bottom: 15px;
+        }
+
+        .upload-box:hover {
+            border-color: var(--orange);
+            border-style: solid;
+            background: #fff8f2;
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: var(--navy-mid);
+        }
+
+        .upload-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 5px;
+        }
+
+        .upload-description {
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
+        .file-name {
+            display: none;
+            margin-top: 12px;
+            color: var(--ok);
+            font-size: 12px;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .file-name.visible {
+            display: block;
+            animation: fadeUp 0.25s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* REQUIREMENTS */
+
+        .requirements {
+            background: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            padding: 14px 16px;
+            margin-bottom: 22px;
+        }
+
+        .requirements-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+
+        .requirements ul {
+            padding-left: 18px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.75;
+        }
+
+        .requirements li::marker {
+            color: var(--orange);
+        }
+
+        /* SUBMIT */
+
+        .submit-button {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 13px;
+            background: var(--orange);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 9px 22px rgba(255, 101, 0, 0.22);
+            transition: 0.22s ease;
+        }
+
+        .submit-button:hover {
+            background: var(--orange-dark);
+            transform: translateY(-1px);
+        }
+
+        .submit-button:active {
+            transform: translateY(0);
+        }
+
+        /* SECURITY */
+
+        .security {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 10.5px;
+        }
+
+        .security span {
+            color: var(--orange);
+        }
+
+        /* SMALL PHONES */
+
+        @media (max-width: 350px) {
+            .document-section {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .category-grid {
+                gap: 6px;
+            }
+        }
+
+        /* TRUE MOBILE — remove phone frame so it fills the screen */
+
+        @media (max-width: 500px) {
+            body {
+                padding: 0;
+                align-items: stretch;
+            }
+
+            .mobile-app {
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                min-height: 100vh;
+                min-height: 100dvh;
+                border-radius: 0;
+                border: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+
+    <style>
+        /* Universal smooth interaction — hover lift, press scale, ripple */
+        button, a, .category label, .upload-box, .submit-button, .back-button {
+            transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.22s ease,
+                        background-color 0.2s ease,
+                        color 0.2s ease,
+                        border-color 0.2s ease,
+                        filter 0.2s ease;
+            will-change: transform;
+        }
+        button:active, a:active, .category label:active, .upload-box:active, .submit-button:active {
+            transform: scale(0.96);
+            transition: transform 0.08s ease;
+        }
+        .rn-tap { position: relative; overflow: hidden; }
+        .rn-tap .rn-ripple {
+            position: absolute; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rnRipple 0.6s ease-out;
+            pointer-events: none;
+        }
+        @keyframes rnRipple { to { transform: scale(2.6); opacity: 0; } }
+        body { animation: rnPageIn 0.35s ease; }
+        @keyframes rnPageIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        (function () {
+            document.addEventListener('click', function (e) {
+                const target = e.target.closest('button, a, .category label, .upload-box');
+                if (!target) return;
+                target.classList.add('rn-tap');
+                const rect = target.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const ripple = document.createElement('span');
+                ripple.className = 'rn-ripple';
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+                target.appendChild(ripple);
+                setTimeout(function () { ripple.remove(); }, 600);
+            });
+            document.addEventListener('click', function (e) {
+                const link = e.target.closest('a[href]');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#')) return;
+                if (link.target === '_blank') return;
+                document.body.style.transition = 'opacity 0.18s ease';
+                document.body.style.opacity = '0.6';
+                setTimeout(function () { document.body.style.opacity = '1'; }, 350);
+            });
+        })();
+    </script>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+
+<body>
+
+<div class="mobile-app">
+
+    <div class="document-section">
+
+        <!-- BACK -->
+        <a
+            href="otp.html"
+            class="back-button">
+
+            ←
+
+        </a>
+
+
+        <!-- PROGRESS removed -->
+
+
+        <!-- HEADER -->
+
+        <div class="label">
+            IDENTITY VERIFICATION
+        </div>
+
+        <h1>
+            Submit Your ID
+        </h1>
+
+        <p class="description">
+            Please provide a valid identification document
+            to help us verify your identity and eligibility
+            for emergency assistance.
+        </p>
+
+
+        <!-- CATEGORY -->
+
+        <div class="section-title">
+            Select ID Category
+        </div>
+
+        <div class="category-grid">
+
+            <!-- PWD -->
+
+            <div class="category">
+
+                <input
+                    type="radio"
+                    name="idType"
+                    id="pwd"
+                    value="PWD"
+                    required>
+
+                <label for="pwd">
+
+                    <div class="category-icon">
+                        ♿
+                    </div>
+
+                    <div class="category-name">
+                        PWD
+                    </div>
+
+                </label>
+
+            </div>
+
+
+            <!-- SENIOR -->
+
+            <div class="category">
+
+                <input
+                    type="radio"
+                    name="idType"
+                    id="senior"
+                    value="Senior Citizen">
+
+                <label for="senior">
+
+                    <div class="category-icon">
+                        👴
+                    </div>
+
+                    <div class="category-name">
+                        Senior
+                    </div>
+
+                </label>
+
+            </div>
+
+
+            <!-- OTHER -->
+
+            <div class="category">
+
+                <input
+                    type="radio"
+                    name="idType"
+                    id="other"
+                    value="Other">
+
+                <label for="other">
+
+                    <div class="category-icon">
+                        🪪
+                    </div>
+
+                    <div class="category-name">
+                        Other
+                    </div>
+
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <!-- UPLOAD -->
+
+        <div class="section-title">
+            Upload Supporting Document
+        </div>
+
+        <label
+            class="upload-box"
+            for="document">
+
+            <div class="upload-icon">
+                📄
+            </div>
+
+            <div class="upload-title">
+                Choose Document
+            </div>
+
+            <div class="upload-description">
+
+                Upload a clear photo or PDF of your
+                valid identification document.
+
+                <br>
+
+                JPG, PNG or PDF • Maximum 5MB
+
+            </div>
+
+            <div
+                class="file-name"
+                id="fileName">
+            </div>
+
+        </label>
+
+        <input
+            type="file"
+            id="document"
+            accept=".jpg,.jpeg,.png,.pdf"
+            hidden>
+
+
+        <!-- REQUIREMENTS -->
+
+        <div class="requirements">
+
+            <div class="requirements-title">
+                Document Requirements
+            </div>
+
+            <ul>
+
+                <li>
+                    Document must be valid and readable.
+                </li>
+
+                <li>
+                    Name should match your registration information.
+                </li>
+
+                <li>
+                    Photo or scanned copy must be clear.
+                </li>
+
+                <li>
+                    Do not upload altered or falsified documents.
+                </li>
+
+            </ul>
+
+        </div>
+
+
+        <!-- SUBMIT -->
+
+        <button
+            class="submit-button"
+            id="submitDocument">
+
+            Continue to Facial Verification
+
+        </button>
+
+
+        <!-- SECURITY -->
+
+        <div class="security">
+
+            <span>🔒</span>
+
+            Your documents are securely protected
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* FILE SELECTION */
+
+    const documentInput =
+        document.getElementById("document");
+
+    const fileName =
+        document.getElementById("fileName");
+
+
+    documentInput.addEventListener("change", function() {
+
+        if (this.files.length > 0) {
+
+            const file =
+                this.files[0];
+
+            const size =
+                file.size / (1024 * 1024);
+
+
+            if (size > 5) {
+
+                alert(
+                    "File is too large. Maximum size is 5MB."
+                );
+
+                this.value = "";
+
+                fileName.classList.remove("visible");
+
+                return;
+            }
+
+
+            fileName.textContent =
+                "✓ " + file.name + "  (" + size.toFixed(2) + " MB)";
+
+            fileName.classList.add("visible");
+
+        }
+
+    });
+
+
+    /* SUBMIT DOCUMENT */
+
+    document
+        .getElementById("submitDocument")
+        .addEventListener("click", function() {
+
+            const selected =
+                document.querySelector(
+                    'input[name="idType"]:checked'
+                );
+
+            const documentFile =
+                documentInput.files[0];
+
+
+            if (!selected) {
+
+                alert(
+                    "Please select your ID category."
+                );
+
+                return;
+
+            }
+
+
+            if (!documentFile) {
+
+                alert(
+                    "Please upload your supporting document."
+                );
+
+                return;
+
+            }
+
+            /* SAVE CATEGORY TEMPORARILY (read by facial.html) */
+
+            sessionStorage.setItem(
+                "rescueIDType",
+                selected.value
+            );
+
+            sessionStorage.setItem(
+                "rescueDocumentName",
+                documentFile.name
+            );
+
+            /* Read the actual document bytes so the admin verification
+               screen can preview the image/PDF on click. Images are
+               downscaled via canvas to keep localStorage/sessionStorage
+               budgets reasonable. PDFs pass through unchanged. */
+            readDocPreview(documentFile).then(function (res) {
+                try {
+                    if (res && res.dataUrl) {
+                        sessionStorage.setItem('rescueDocumentDataUrl', res.dataUrl);
+                        sessionStorage.setItem('rescueDocumentType', res.type || documentFile.type || '');
+                    } else {
+                        sessionStorage.removeItem('rescueDocumentDataUrl');
+                        sessionStorage.removeItem('rescueDocumentType');
+                    }
+                } catch (e) { /* quota exceeded — preview is optional */ }
+                window.location.href = 'facial.html';
+            });
+
+        });
+
+    /* ------- helpers: file → dataURL (with image downscale) ------- */
+    function readDocPreview(file) {
+        return new Promise(function (resolve) {
+            if (!file) return resolve(null);
+            const isImage = /^image\//i.test(file.type || '');
+            const reader = new FileReader();
+            reader.onerror = function () { resolve(null); };
+            reader.onload = function () {
+                const raw = reader.result;
+                if (!isImage) { resolve({ dataUrl: raw, type: file.type || '' }); return; }
+                // Downscale: max side 1280 px, JPEG q=0.78
+                try {
+                    const img = new Image();
+                    img.onerror = function () { resolve({ dataUrl: raw, type: file.type }); };
+                    img.onload = function () {
+                        try {
+                            const max = 1280;
+                            let w = img.width, h = img.height;
+                            if (w > max || h > max) {
+                                if (w >= h) { h = Math.round(h * (max / w)); w = max; }
+                                else       { w = Math.round(w * (max / h)); h = max; }
+                            }
+                            const cvs = document.createElement('canvas');
+                            cvs.width = w; cvs.height = h;
+                            const ctx = cvs.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+                            resolve({ dataUrl: cvs.toDataURL('image/jpeg', 0.78), type: 'image/jpeg' });
+                        } catch (e) { resolve({ dataUrl: raw, type: file.type }); }
+                    };
+                    img.src = raw;
+                } catch (e) { resolve({ dataUrl: raw, type: file.type }); }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+</script>
+
+</body>
+</html>

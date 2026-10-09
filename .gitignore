@@ -1,0 +1,31 @@
+# Secrets — never commit these
+email-config.json
+sms-config.json
+maps-config.json
+.env
+
+# SSL cert material (private key + generated certs)
+certs/
+
+# Runtime data
+rescuenet-sync.json
+
+# Server logs
+server.out.log
+server.err.log
+*.log
+
+# Dependencies
+node_modules/
+
+# Android build artifacts
+android/build/
+android/app/build/
+android/.gradle/
+android/.kotlin/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+
+# OS / editor noise
+Thumbs.db
+.DS_Store

@@ -1,0 +1,1397 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <title>RescueNet - OTP Verification</title>
+
+    <style>
+
+        /* ========================================
+           RESET
+        ======================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+
+        body {
+            background: #ffffff;
+            color: #102d5c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+
+        /* ========================================
+           MOBILE APP
+        ======================================== */
+
+        .mobile-app {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            margin: auto;
+            background: #ffffff;
+            border: 1px solid rgba(16, 45, 92, 0.10);
+            border-radius: 50px 50px 39px 39px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(16, 45, 92, 0.12);
+        }
+
+
+        /* ========================================
+           OTP SECTION
+        ======================================== */
+
+        .otp-section {
+            position: relative;
+            z-index: 3;
+            padding: 40px 24px 32px;
+            background: transparent;
+        }
+
+
+        /* ========================================
+           BACK BUTTON
+        ======================================== */
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            width: 36px;
+            height: 36px;
+
+            border-radius: 10px;
+
+            border: 1px solid rgba(16, 45, 92, 0.14);
+
+            background: #f6f9fd;
+
+            color: #102d5c;
+
+            text-decoration: none;
+
+            font-size: 17px;
+
+            margin-bottom: 24px;
+
+            transition: 0.2s ease;
+        }
+
+
+        .back-button:hover {
+            background: #FF6500;
+            border-color: transparent;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+
+        /* ========================================
+           HEADER
+        ======================================== */
+
+        .label {
+            color: #FF6500;
+
+            font-size: 10px;
+
+            font-weight: 700;
+
+            letter-spacing: 1.8px;
+
+            text-transform: uppercase;
+
+            margin-bottom: 10px;
+
+            display: inline-block;
+
+            background: rgba(255, 101, 0, 0.10);
+
+            border: 1px solid rgba(255, 101, 0, 0.16);
+
+            border-radius: 999px;
+
+            padding: 6px 10px;
+        }
+
+
+        h1 {
+            color: #102d5c;
+
+            font-size: 30px;
+
+            font-weight: 800;
+
+            margin-bottom: 10px;
+
+            letter-spacing: -0.04em;
+        }
+
+
+        .description {
+            color: #5b7392;
+
+            font-size: 13px;
+
+            line-height: 1.55;
+
+            margin-bottom: 10px;
+        }
+
+
+        /* ========================================
+           PHONE NUMBER
+        ======================================== */
+
+        .phone-number {
+            color: #102d5c;
+
+            font-size: 14px;
+
+            font-weight: 700;
+
+            margin-bottom: 28px;
+        }
+
+
+        /* ========================================
+           OTP CONTAINER
+        ======================================== */
+
+        .otp-container {
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 8px;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* ========================================
+           OTP INPUT
+        ======================================== */
+
+        .otp-input {
+            width: 48px;
+
+            height: 56px;
+
+            border-radius: 14px;
+
+            border: 1px solid rgba(16, 45, 92, 0.14);
+
+            background: #f6f9fd;
+
+            color: #102d5c;
+
+            text-align: center;
+
+            font-size: 22px;
+
+            font-weight: 700;
+
+            outline: none;
+
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+
+            -webkit-appearance: none;
+
+            appearance: none;
+        }
+
+
+        .otp-input:focus {
+            border-color: #FF7B30;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 0 0 4px rgba(255, 101, 0, 0.12);
+        }
+
+
+        /* Typed digit gets a filled look */
+
+        .otp-input.filled {
+            border-color: rgba(34, 160, 76, 0.45);
+
+            background: #ffffff;
+        }
+
+
+        .otp-input.filled:focus {
+            border-color: #FF7B30;
+        }
+
+
+        /* Shake when the code is wrong */
+
+        .otp-input.shake {
+            animation: otp-shake 0.35s ease;
+        }
+
+
+        @keyframes otp-shake {
+
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            50% { transform: translateX(4px); }
+            75% { transform: translateX(-3px); }
+        }
+
+
+        /* Remove number arrows */
+
+        .otp-input::-webkit-outer-spin-button,
+        .otp-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+
+        /* ========================================
+           VERIFY BUTTON
+        ======================================== */
+
+        .verify-button {
+            width: 100%;
+
+            height: 54px;
+
+            border: none;
+
+            border-radius: 14px;
+
+            background: #FF6500;
+
+            color: #ffffff;
+
+            font-size: 15px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 10px 22px rgba(255, 101, 0, 0.22);
+
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+
+            letter-spacing: 0.04em;
+        }
+
+
+        .verify-button:hover {
+            transform: translateY(-1px);
+
+            filter: brightness(1.02);
+        }
+
+
+        .verify-button:active {
+            transform: translateY(0) scale(0.99);
+        }
+
+
+        .verify-button:disabled {
+            opacity: 0.55;
+
+            cursor: not-allowed;
+
+            transform: none;
+        }
+
+
+        /* ========================================
+           RESEND
+        ======================================== */
+
+        .resend {
+            text-align: center;
+
+            margin-top: 25px;
+
+            color: #5b7392;
+
+            font-size: 12px;
+        }
+
+
+        .resend button {
+            border: none;
+
+            background: transparent;
+
+            color: #FF6500;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            margin-left: 4px;
+        }
+
+
+        .resend button:hover {
+            text-decoration: underline;
+        }
+
+
+        .resend button:disabled {
+            color: rgba(16, 45, 92, 0.35);
+
+            cursor: not-allowed;
+
+            text-decoration: none;
+        }
+
+
+        /* ========================================
+           TIMER
+        ======================================== */
+
+        .timer {
+            text-align: center;
+
+            color: rgba(16, 45, 92, 0.45);
+
+            font-size: 11px;
+
+            margin-top: 10px;
+        }
+
+
+        .timer.expired {
+            color: #d64545;
+        }
+
+
+        /* ========================================
+           STATUS MESSAGE
+        ======================================== */
+
+        .status-message {
+            display: none;
+
+            text-align: center;
+
+            margin-top: 15px;
+
+            padding: 11px;
+
+            border-radius: 10px;
+
+            background: rgba(255, 101, 0, 0.08);
+
+            color: #f0640e;
+
+            font-size: 12px;
+
+            line-height: 1.4;
+        }
+
+
+        .status-message.error {
+            background: rgba(214, 69, 69, 0.08);
+            color: #d64545;
+        }
+
+
+        .status-message.ok {
+            background: rgba(34, 160, 76, 0.10);
+            color: #22a04c;
+        }
+
+
+        /* ========================================
+           SECURITY
+        ======================================== */
+
+        .security {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 6px;
+
+            margin-top: 40px;
+
+            color: rgba(16, 45, 92, 0.45);
+
+            font-size: 10px;
+        }
+
+
+        .security span {
+            color: #f0640e;
+        }
+
+
+        /* ========================================
+           SMALL PHONES
+        ======================================== */
+
+        @media (max-width: 350px) {
+
+            .otp-section {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+
+            .otp-input {
+                width: 43px;
+                height: 52px;
+            }
+
+
+            h1 {
+                font-size: 26px;
+            }
+
+        }
+
+        /* ========================================
+           SMALL PHONES
+        ======================================== */
+
+        @media (max-width: 500px) {
+
+            body {
+                padding: 0;
+            }
+
+            .mobile-app {
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                min-height: 100vh;
+                min-height: 100dvh;
+                border-radius: 0;
+                border: 0;
+                box-shadow: none;
+            }
+
+        }
+    </style>
+
+    <style>
+        /* Universal smooth interaction — hover lift, press scale, ripple */
+        button, a, .otp-input, .resend-btn, .verify-btn, .back-button {
+            transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.22s ease,
+                        background-color 0.2s ease,
+                        color 0.2s ease,
+                        border-color 0.2s ease,
+                        filter 0.2s ease;
+            will-change: transform;
+        }
+        button:active, a:active, .verify-btn:active, .resend-btn:active {
+            transform: scale(0.96);
+            transition: transform 0.08s ease;
+        }
+        .otp-input:focus {
+            transform: translateY(-2px);
+        }
+        .rn-tap { position: relative; overflow: hidden; }
+        .rn-tap .rn-ripple {
+            position: absolute; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rnRipple 0.6s ease-out;
+            pointer-events: none;
+        }
+        @keyframes rnRipple { to { transform: scale(2.6); opacity: 0; } }
+        body { animation: rnPageIn 0.35s ease; }
+        @keyframes rnPageIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        (function () {
+            document.addEventListener('click', function (e) {
+                const target = e.target.closest('button, a');
+                if (!target) return;
+                target.classList.add('rn-tap');
+                const rect = target.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const ripple = document.createElement('span');
+                ripple.className = 'rn-ripple';
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+                target.appendChild(ripple);
+                setTimeout(function () { ripple.remove(); }, 600);
+            });
+            document.addEventListener('click', function (e) {
+                const link = e.target.closest('a[href]');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#')) return;
+                if (link.target === '_blank') return;
+                document.body.style.transition = 'opacity 0.18s ease';
+                document.body.style.opacity = '0.6';
+                setTimeout(function () { document.body.style.opacity = '1'; }, 350);
+            });
+        })();
+    </script>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+
+
+<body>
+
+
+<div class="mobile-app">
+
+
+    <!-- ========================================
+         OTP SECTION
+         ======================================== -->
+
+    <div class="otp-section">
+
+        <a
+            href="register.html"
+            class="back-button">
+
+            ←
+
+        </a>
+
+
+
+        <!-- ========================================
+             HEADER
+             ======================================== -->
+
+        <div class="label">
+
+            MOBILE VERIFICATION
+
+        </div>
+
+
+        <h1>
+
+            Verify Your Number
+
+        </h1>
+
+
+        <p class="description">
+
+            We've sent a 6-digit verification code
+            to the mobile number you entered.
+
+        </p>
+
+
+
+        <!-- ========================================
+             PHONE NUMBER
+             ======================================== -->
+
+        <div
+            class="phone-number"
+            id="phoneDisplay">
+
+            Loading mobile number...
+
+        </div>
+
+
+
+        <!-- ========================================
+             OTP INPUTS
+             ======================================== -->
+
+        <div class="otp-container">
+
+
+            <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                aria-label="OTP digit 1">
+
+
+            <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                inputmode="numeric"
+                aria-label="OTP digit 2">
+
+
+            <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                inputmode="numeric"
+                aria-label="OTP digit 3">
+
+
+            <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                inputmode="numeric"
+                aria-label="OTP digit 4">
+
+
+            <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                inputmode="numeric"
+                aria-label="OTP digit 5">
+
+
+            <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                inputmode="numeric"
+                aria-label="OTP digit 6">
+
+
+        </div>
+
+
+
+        <!-- ========================================
+             VERIFY BUTTON
+             ======================================== -->
+
+        <button
+            class="verify-button"
+            id="verifyButton">
+
+            Verify Number
+
+        </button>
+
+
+
+        <!-- ========================================
+             STATUS
+             ======================================== -->
+
+        <div
+            class="status-message"
+            id="statusMessage">
+
+        </div>
+
+
+
+        <!-- ========================================
+             RESEND
+             ======================================== -->
+
+        <div class="resend">
+
+            Didn't receive the code?
+
+            <button
+                id="resendButton"
+                type="button">
+
+                Resend OTP
+
+            </button>
+
+        </div>
+
+
+
+        <!-- ========================================
+             TIMER
+             ======================================== -->
+
+        <div
+            class="timer"
+            id="timer">
+
+            Code expires in 02:00
+
+        </div>
+
+
+
+        <!-- ========================================
+             SECURITY
+             ======================================== -->
+
+        <div class="security">
+
+            <span>🔒</span>
+
+            Secure mobile verification
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<script src="config.js"></script>
+<script>
+
+
+    /* ============================================
+       GET MOBILE NUMBER + EMAIL FROM REGISTER PAGE
+       ============================================ */
+
+    const phone =
+        sessionStorage.getItem("rescuePhone");
+
+
+    const email =
+        (sessionStorage.getItem("rescueEmail") || "").trim();
+
+
+    const phoneDisplay =
+        document.getElementById("phoneDisplay");
+
+
+    if (phone && email) {
+
+        phoneDisplay.innerHTML =
+            phone + "<br><span style=\"font-weight:500;color:#5b7392;font-size:12px;\">Code sent to " + email + "</span>";
+
+    } else if (phone) {
+
+        phoneDisplay.textContent = phone;
+
+    } else {
+
+        phoneDisplay.textContent =
+            "No mobile number found";
+
+    }
+
+
+
+    /* ============================================
+       OTP INPUTS
+       ============================================ */
+
+    const otpInputs =
+        document.querySelectorAll(".otp-input");
+
+
+    const verifyButton =
+        document.getElementById("verifyButton");
+
+
+    const resendButton =
+        document.getElementById("resendButton");
+
+
+    const timer =
+        document.getElementById("timer");
+
+
+    const statusMessage =
+        document.getElementById("statusMessage");
+
+
+
+    /* ============================================
+       AUTO MOVE BETWEEN OTP BOXES
+       ============================================ */
+
+    otpInputs.forEach(function(input, index) {
+
+
+        input.addEventListener("input", function(event) {
+
+
+            /* Only allow numbers */
+
+            this.value =
+                this.value.replace(/[^0-9]/g, "");
+
+
+            /* Filled look for typed digit */
+
+            this.classList.toggle(
+                "filled",
+                this.value.length === 1
+            );
+
+
+            /* Move to next box */
+
+            if (
+                this.value.length === 1 &&
+                index < otpInputs.length - 1
+            ) {
+
+                otpInputs[index + 1].focus();
+
+            }
+
+        });
+
+
+
+        /* ========================================
+           BACKSPACE
+           ======================================== */
+
+        input.addEventListener(
+            "keydown",
+            function(event) {
+
+
+                if (
+                    event.key === "Backspace" &&
+                    this.value === "" &&
+                    index > 0
+                ) {
+
+                    otpInputs[index - 1].focus();
+
+                }
+
+            }
+        );
+
+
+
+        /* Clear filled look when digit is removed */
+
+        input.addEventListener(
+            "keyup",
+            function(event) {
+
+                this.classList.toggle(
+                    "filled",
+                    this.value.length === 1
+                );
+            }
+        );
+
+
+
+        /* ========================================
+           PASTE OTP
+           ======================================== */
+
+        input.addEventListener(
+            "paste",
+            function(event) {
+
+
+                event.preventDefault();
+
+
+                const pastedData =
+                    event.clipboardData
+                        .getData("text")
+                        .replace(/[^0-9]/g, "")
+                        .substring(0, 6);
+
+
+                if (!pastedData) {
+                    return;
+                }
+
+
+                pastedData
+                    .split("")
+                    .forEach(function(number, i) {
+
+                        if (otpInputs[i]) {
+
+                            otpInputs[i].value =
+                                number;
+
+                            otpInputs[i].classList.add("filled");
+
+                        }
+
+                    });
+
+
+                const lastIndex =
+                    Math.min(
+                        pastedData.length,
+                        otpInputs.length
+                    ) - 1;
+
+
+                if (lastIndex >= 0) {
+
+                    otpInputs[lastIndex].focus();
+
+                }
+
+            }
+        );
+
+    });
+
+
+
+    /* ============================================
+       GET ENTERED OTP
+       ============================================ */
+
+    function getOTP() {
+
+
+        let otp = "";
+
+
+        otpInputs.forEach(function(input) {
+
+            otp += input.value;
+
+        });
+
+
+        return otp;
+
+    }
+
+
+
+    /* ============================================
+       SHOW STATUS
+       ============================================ */
+
+    function showStatus(message, kind) {
+
+        statusMessage.textContent =
+            message;
+
+        statusMessage.classList.remove("error", "ok");
+
+        if (kind) statusMessage.classList.add(kind);
+
+        statusMessage.style.display =
+            "block";
+
+    }
+
+
+    /* ============================================
+       API BASE  (works from http and Capacitor://localhost)
+       ============================================ */
+
+    const API_BASE = (function() {
+        // If we're already served from the Node server (browser testing), use same origin
+        const origin = window.location.origin || "";
+        if (origin.indexOf(":3000") !== -1 || origin.indexOf(":3443") !== -1) return origin;
+        // In Capacitor (https://localhost), use the configured LAN IP
+        if (window.RN_SERVER) return window.RN_SERVER;
+        if (origin && origin.indexOf("http") === 0 && origin.indexOf("localhost") === -1) {
+            return origin;
+        }
+        return "http://localhost:3000";
+    })();
+
+
+    async function apiPost(path, body) {
+
+        const res = await fetch(API_BASE + path, {
+
+            method: "POST",
+
+            headers: { "Content-Type": "application/json" },
+
+            body: JSON.stringify(body || {}),
+
+        });
+
+        let data = {};
+
+        try { data = await res.json(); } catch (e) { /* ignore */ }
+
+        return { ok: res.ok && data.ok !== false, data, status: res.status };
+
+    }
+
+
+    function shakeOtp() {
+
+        otpInputs.forEach(function(input) {
+
+            input.classList.remove("shake");
+
+            /* restart animation */
+            void input.offsetWidth;
+
+            input.classList.add("shake");
+
+        });
+
+    }
+
+
+
+    /* ============================================
+       VERIFY OTP (calls backend)
+       ============================================ */
+
+    verifyButton.addEventListener(
+        "click",
+        async function() {
+
+
+            const otp =
+                getOTP();
+
+
+            /* Check complete OTP */
+
+            if (otp.length !== 6) {
+
+                showStatus(
+                    "Please enter the complete 6-digit OTP.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (!email) {
+
+                showStatus(
+                    "No email found. Please go back and register again.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            verifyButton.disabled =
+                true;
+
+
+            verifyButton.textContent =
+                "Verifying...";
+
+
+            showStatus(
+                "Verifying your code..."
+            );
+
+
+            const result = await apiPost("/api/verify-otp", {
+                email: email,
+                phone: phone || "",
+                code: otp,
+            });
+
+
+            if (result.ok) {
+
+
+                /* Save verification status */
+
+                sessionStorage.setItem(
+                    "mobileVerified",
+                    "true"
+                );
+
+
+                showStatus(
+                    "Verified successfully!",
+                    "ok"
+                );
+
+
+                verifyButton.textContent =
+                    "Verified ✓";
+
+
+                /*
+                    GO TO ID DOCUMENT PAGE
+                */
+
+                setTimeout(function() {
+
+                    window.location.href =
+                        "documents.html";
+
+                }, 800);
+
+
+                return;
+
+            }
+
+
+            /* Failed */
+
+            shakeOtp();
+
+
+            showStatus(
+                (result.data && result.data.error) ||
+                    "Incorrect code. Please try again.",
+                "error"
+            );
+
+
+            verifyButton.textContent =
+                "Verify Number";
+
+
+            verifyButton.disabled =
+                false;
+
+
+            /* Clear inputs for retry */
+
+            otpInputs.forEach(function(input) {
+
+                input.value = "";
+
+                input.classList.remove("filled");
+
+            });
+
+
+            otpInputs[0].focus();
+
+        }
+    );
+
+
+
+    /* ============================================
+       REQUEST / RE-REQUEST OTP (email delivery)
+       ============================================ */
+
+    async function requestOtp(isResend) {
+
+        if (!email && !phone) {
+
+            showStatus(
+                "No email or phone on file. Please go back and register first.",
+                "error"
+            );
+
+            resendButton.disabled = false;
+
+            return;
+
+        }
+
+
+        resendButton.disabled = true;
+
+        showStatus(
+            isResend
+                ? "Sending a new code to your email and phone..."
+                : "Sending code to your email and phone..."
+        );
+
+
+        /* Reset timer to 120s on success */
+        timeLeft = 120;
+
+        timer.classList.remove("expired");
+
+
+        const result = await apiPost("/api/send-otp", { email: email, phone: phone || "" });
+
+
+        if (result.ok) {
+
+            const ch = (result.data && result.data.channels) || {};
+
+            let msg = "Code emailed to " + email;
+
+            if (ch.sms === "sent") {
+                msg += " and sent by SMS to " + (result.data.phone || phone);
+            } else if (ch.sms === "dev-log") {
+                msg += " · SMS in dev-log mode (see server console)";
+            } else if (ch.sms === "failed") {
+                msg += " · SMS failed (see server log)";
+            }
+
+            showStatus(msg, "ok");
+
+            /* Enable retry after 30s cooldown */
+            setTimeout(function() {
+                resendButton.disabled = false;
+            }, 30000);
+
+        } else {
+
+            showStatus(
+                (result.data && result.data.error) ||
+                    "Could not send the code.",
+                "error"
+            );
+
+            setTimeout(function() {
+                resendButton.disabled = false;
+            }, 3000);
+
+        }
+
+    }
+
+
+    /* ============================================
+       RESEND OTP
+       ============================================ */
+
+    resendButton.addEventListener(
+        "click",
+        function() {
+
+
+            /* Clear OTP inputs */
+
+            otpInputs.forEach(function(input) {
+
+                input.value = "";
+
+                input.classList.remove("filled");
+
+            });
+
+
+            otpInputs[0].focus();
+
+            requestOtp(true);
+
+        }
+    );
+
+
+
+    /* ============================================
+       OTP COUNTDOWN
+       ============================================ */
+
+    let timeLeft = 120;
+
+
+    function updateTimer() {
+
+
+        const minutes =
+            Math.floor(timeLeft / 60);
+
+
+        const seconds =
+            timeLeft % 60;
+
+
+        timer.textContent =
+            "Code expires in " +
+            String(minutes).padStart(2, "0") +
+            ":" +
+            String(seconds).padStart(2, "0");
+
+
+        if (timeLeft <= 0) {
+
+
+            clearInterval(
+                countdown
+            );
+
+
+            timer.textContent =
+                "OTP expired. Please request a new code.";
+
+
+            timer.classList.add(
+                "expired"
+            );
+
+
+            verifyButton.disabled =
+                true;
+
+
+            resendButton.disabled =
+                false;
+
+
+            return;
+
+        }
+
+
+        timeLeft--;
+
+    }
+
+
+    const countdown =
+        setInterval(
+            updateTimer,
+            1000
+        );
+
+
+    updateTimer();
+
+
+
+    /* ============================================
+       FOCUS FIRST OTP BOX + AUTO-SEND CODE ON LOAD
+       ============================================ */
+
+    window.addEventListener(
+        "load",
+        function() {
+
+            otpInputs[0].focus();
+
+            requestOtp(false);
+
+        }
+    );
+
+
+</script>
+
+</body>
+</html>

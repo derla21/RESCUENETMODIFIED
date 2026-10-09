@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>RescueNet Login</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==========================================================
+           RescueNet design system — white theme (matches register/otp/documents)
+           ========================================================== */
+        :root {
+            --navy: #102d5c;
+            --navy-mid: #133f7d;
+            --muted: #5b7392;
+            --line: rgba(16, 45, 92, 0.13);
+            --soft: #f6f9fd;
+            --soft-2: #eef4ff;
+            --orange: #ff6500;
+            --orange-dark: #e95700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background: #ffffff;
+            color: var(--navy);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* MOBILE APP FRAME */
+
+        .mobile-app {
+            width: 100%;
+            max-width: 420px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: auto;
+            background: #ffffff;
+            border: 1px solid rgba(16, 45, 92, 0.10);
+            border-radius: 50px 50px 39px 39px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(16, 45, 92, 0.12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HERO / LOGO SECTION */
+
+        .top-section {
+            position: relative;
+            height: 200px;
+            flex: 0 0 200px;
+            overflow: hidden;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-map,
+        .login-map-shade {
+            display: none;
+        }
+
+        .logo {
+            position: relative;
+            z-index: 3;
+            display: block;
+            width: 240px;
+            max-width: 72%;
+            height: auto;
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            object-fit: contain;
+            box-shadow: none;
+            filter: drop-shadow(0 8px 18px rgba(16, 45, 92, 0.14));
+        }
+
+        /* LOGIN SECTION */
+
+        .login-section {
+            position: relative;
+            z-index: 3;
+            flex: 1 1 auto;
+            padding: 26px 24px 32px;
+            background: #ffffff;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .login-section::-webkit-scrollbar {
+            display: none;
+        }
+
+        .welcome {
+            margin-bottom: 22px;
+        }
+
+        .welcome h1 {
+            color: var(--navy);
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 7px;
+            letter-spacing: -0.04em;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        /* FORM */
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group > label {
+            display: block;
+            color: var(--navy);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.04em;
+            transition: color 0.2s ease;
+        }
+
+        .form-group:focus-within > label {
+            color: var(--orange);
+        }
+
+        .input-box {
+            position: relative;
+        }
+
+        .input-box input {
+            width: 100%;
+            height: 52px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            outline: none;
+            padding: 0 45px 0 42px;
+            font-size: 14px;
+            color: var(--navy);
+            background: var(--soft);
+            transition: 0.22s ease;
+        }
+
+        .input-box input::placeholder {
+            color: rgba(16, 45, 92, 0.40);
+        }
+
+        .input-box input:focus {
+            border-color: var(--orange);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 101, 0, 0.14);
+        }
+
+        .icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--muted);
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        .input-box input:focus ~ .icon {
+            color: var(--orange);
+        }
+
+        .show-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.18s ease;
+        }
+
+        .show-password:hover {
+            background: var(--soft-2);
+            color: var(--navy);
+        }
+
+        /* OPTIONS */
+
+        .options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 6px 0 20px;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .remember input {
+            width: 15px;
+            height: 15px;
+            accent-color: var(--orange);
+            cursor: pointer;
+        }
+
+        .forgot {
+            color: var(--navy-mid);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .forgot:hover {
+            color: var(--orange);
+            text-decoration: underline;
+        }
+
+        /* BUTTONS */
+
+        .login-button {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 14px;
+            background: var(--orange);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(255, 101, 0, 0.24);
+            transition: 0.22s ease;
+            letter-spacing: 0.04em;
+        }
+
+        .login-button:hover {
+            background: var(--orange-dark);
+            transform: translateY(-1px);
+        }
+
+        .login-button:active {
+            transform: translateY(0) scale(0.99);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 22px 0 16px;
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 0.06em;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            height: 1px;
+            background: var(--line);
+            flex: 1;
+            border-radius: 999px;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 10px;
+            margin: 0 0 18px;
+        }
+
+        .social-button {
+            flex: 1;
+            height: 46px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--soft);
+            color: var(--navy);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s ease;
+        }
+
+        .social-button:hover {
+            background: var(--soft-2);
+            border-color: var(--navy-mid);
+        }
+
+        .social-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .social-icon.google  { background: #db4437; }
+        .social-icon.facebook { background: #1877f2; }
+
+        .register {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .register a {
+            color: var(--navy-mid);
+            text-decoration: none;
+            font-weight: 700;
+            margin-left: 3px;
+            transition: 0.2s ease;
+        }
+
+        .register a:hover {
+            color: var(--orange);
+        }
+
+        .security {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 10.5px;
+            letter-spacing: 0.04em;
+        }
+
+        .security span {
+            color: var(--orange);
+        }
+
+        /* SMALL PHONES */
+
+        @media (max-width: 350px) {
+            .login-section {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .welcome h1 {
+                font-size: 24px;
+            }
+        }
+
+        /* TRUE MOBILE — remove phone frame so it fills the screen */
+
+        @media (max-width: 500px) {
+            body {
+                padding: 0;
+            }
+
+            .mobile-app {
+                width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                min-height: 100vh;
+                min-height: 100dvh;
+                border-radius: 0;
+                border: 0;
+                box-shadow: none;
+            }
+        }
+
+        /* ==========================================================
+           Universal smooth interaction — hover lift, press scale, ripple
+           ========================================================== */
+        button,
+        a,
+        .category label,
+        .upload-box,
+        .social-button,
+        .login-button,
+        .back-button,
+        .show-password,
+        .forgot,
+        .register a {
+            transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.22s ease,
+                        background-color 0.2s ease,
+                        color 0.2s ease,
+                        border-color 0.2s ease,
+                        filter 0.2s ease;
+            will-change: transform;
+        }
+
+        button:active,
+        a:active,
+        .category label:active,
+        .upload-box:active,
+        .login-button:active {
+            transform: scale(0.96);
+            transition: transform 0.08s ease;
+        }
+
+        .rn-tap {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rn-tap .rn-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rnRipple 0.6s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes rnRipple {
+            to { transform: scale(2.6); opacity: 0; }
+        }
+
+        /* Page-fade on navigation (works when pages share this script) */
+        body {
+            animation: rnPageIn 0.35s ease;
+        }
+
+        @keyframes rnPageIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <link rel="stylesheet" href="responsive.css">
+
+    <script>
+        /* Universal click ripple — attaches to buttons, links, category tiles, upload box */
+        (function () {
+            document.addEventListener('click', function (e) {
+                const target = e.target.closest(
+                    'button, a, .category label, .upload-box'
+                );
+                if (!target) return;
+
+                target.classList.add('rn-tap');
+
+                const rect = target.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const ripple = document.createElement('span');
+                ripple.className = 'rn-ripple';
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                ripple.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+
+                target.appendChild(ripple);
+                setTimeout(function () { ripple.remove(); }, 600);
+            });
+
+            /* Fade-out before navigating so page transitions feel smooth */
+            document.addEventListener('click', function (e) {
+                const link = e.target.closest('a[href]');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#')) return;
+                if (link.target === '_blank') return;
+                document.body.style.transition = 'opacity 0.18s ease';
+                document.body.style.opacity = '0.6';
+                setTimeout(function () {
+                    document.body.style.opacity = '1';
+                }, 350);
+            });
+        })();
+    </script>
+</head>
+
+<body>
+
+<div class="mobile-app">
+
+    <!-- LOGO SECTION -->
+    <div class="top-section">
+        <img
+            class="login-map"
+            src="taculings.jpg"
+            alt="RescueNet service area map"
+        >
+        <div class="login-map-shade" aria-hidden="true"></div>
+        <img
+            src="logo-transparent.png"
+            alt="RescueNet Logo"
+            class="logo"
+        >
+    </div>
+
+
+    <!-- LOGIN SECTION -->
+    <div class="login-section">
+
+        <div class="welcome" id="welcomeBox">
+
+            <h1>Welcome Back</h1>
+
+            <p>
+                Sign in to continue to your emergency response account.
+            </p>
+
+        </div>
+
+        <!-- AWAITING-APPROVAL CARD (shown right after registration until a barangay official approves) -->
+        <div id="pendingCard" hidden style="margin:0 0 22px; padding:22px 20px; border-radius:16px; background:linear-gradient(180deg,#fff6ec 0%,#ffffff 100%); border:1px solid rgba(255,101,0,0.28); box-shadow:0 10px 26px rgba(16,45,92,0.06);">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div id="pendingIcon" style="width:38px; height:38px; border-radius:50%; background:#ff6500; color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 6px 14px rgba(255,101,0,0.35); flex:0 0 auto;">⏳</div>
+                <div style="flex:1 1 auto; min-width:0;">
+                    <div id="pendingTitle" style="font-weight:800; color:#102d5c; font-size:15px; letter-spacing:-0.01em;">Awaiting approval</div>
+                    <div id="pendingSub"  style="color:#5b7392; font-size:12.5px; margin-top:2px;">A barangay official will review your registration.</div>
+                </div>
+            </div>
+            <div id="pendingBody" style="font-size:12.5px; color:#334c6b; line-height:1.55;">
+                We saved your details. We’ll notify you by <b>email</b> and <b>SMS</b> as soon as your account is approved. This page will update automatically — no need to refresh.
+            </div>
+            <div style="margin-top:14px; display:flex; align-items:center; gap:10px; font-size:11.5px; color:#5b7392;">
+                <span style="display:inline-flex; align-items:center; gap:6px;"><span id="pendingDot" style="width:8px; height:8px; border-radius:50%; background:#ff6500; animation:pulseDot 1.4s ease-in-out infinite;"></span> Checking…</span>
+                <span id="pendingContact" style="margin-left:auto; font-family:monospace; font-size:11px; color:#102d5c;"></span>
+            </div>
+        </div>
+        <style>
+        @keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.85); } }
+        </style>
+
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm">
+
+            <!-- EMAIL -->
+            <div class="form-group">
+
+                <div class="input-box">
+
+                    <svg
+                        class="icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <rect
+                            x="3"
+                            y="5"
+                            width="18"
+                            height="14"
+                            rx="2">
+                        </rect>
+
+                        <polyline points="3,7 12,13 21,7">
+                        </polyline>
+
+                    </svg>
+
+                    <input
+                        type="text"
+                        id="email"
+                        placeholder="Email or phone number"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- PASSWORD -->
+            <div class="form-group">
+
+                <div class="input-box">
+
+                    <svg
+                        class="icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <rect
+                            x="4"
+                            y="10"
+                            width="16"
+                            height="11"
+                            rx="2">
+                        </rect>
+
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3">
+                        </path>
+
+                    </svg>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="show-password"
+                        id="passwordButton"
+                        onclick="togglePassword()">
+
+                        👁
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- OPTIONS -->
+            <div class="options">
+
+                <label class="remember">
+
+                    <input type="checkbox">
+
+                    Remember me
+
+                </label>
+
+                <a
+                    href="#"
+                    class="forgot">
+
+                    Forgot Password?
+
+                </a>
+
+            </div>
+
+
+            <!-- LOGIN BUTTON -->
+            <button
+                type="submit"
+                class="login-button">
+
+                Sign In
+
+            </button>
+
+        </form>
+
+
+        <!-- DIVIDER -->
+        <div class="divider">
+            or continue with
+        </div>
+
+        <div class="social-login">
+            <button type="button" class="social-button">
+                <span class="social-icon google">G</span>
+                Google
+            </button>
+            <button type="button" class="social-button">
+                <span class="social-icon facebook">f</span>
+                Facebook
+            </button>
+        </div>
+
+
+        <!-- REGISTER LINK -->
+        <div class="register">
+
+            Don't have an account?
+
+            <a href="register.html">
+                Create Account
+            </a>
+
+        </div>
+
+
+        <!-- SECURITY -->
+        <div class="security">
+
+            <span>🔒</span>
+
+            Secure & protected by RescueNet
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* Server base (same pattern as other app pages) */
+    const API_BASE = (function() {
+        const o = window.location.origin || '';
+        if (o.indexOf(':3000') !== -1 || o.indexOf(':3443') !== -1) return o;
+        if (window.RN_SERVER) return window.RN_SERVER;
+        if (o.indexOf('http') === 0 && o.indexOf('localhost') === -1) return o;
+        return 'http://localhost:3000';
+    })();
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    /* ============================================
+       POST-REGISTRATION: pending-approval gate
+       ============================================ */
+    let approvalPollTimer = null;
+    let approvalResolved  = false;
+
+    /* Read the pending lookup key from either sessionStorage (fresh flow) OR
+     * the persistent localStorage pointer saved by facial.html. */
+    function readPendingContact() {
+        let email = sessionStorage.getItem('rescueEmail') || '';
+        let phone = sessionStorage.getItem('rescuePhone') || '';
+        if (!email && !phone) {
+            try {
+                const p = JSON.parse(localStorage.getItem('rn_pending_resident') || 'null');
+                if (p) { email = p.email || ''; phone = p.phone || ''; }
+            } catch (e) {}
+        }
+        if (!email && !phone) {
+            // last-resort: newest local resident
+            try {
+                const list = JSON.parse(localStorage.getItem('rn_residents') || '[]');
+                if (list.length) { email = list[0].email || ''; phone = list[0].phone || ''; }
+            } catch (e) {}
+        }
+        return { email, phone };
+    }
+
+    /* Write the approved status back to the local rn_residents record so the user
+     * can sign in even if the server later becomes unreachable. */
+    function mergeStatusToLocal(identifier, status, extra) {
+        if (!identifier) return;
+        try {
+            const list = JSON.parse(localStorage.getItem('rn_residents') || '[]');
+            const key = String(identifier).toLowerCase().replace(/\s/g, '');
+            const idx = list.findIndex(r =>
+                (r.email && r.email.toLowerCase() === key) ||
+                (r.phone && String(r.phone).replace(/\s/g, '') === key)
+            );
+            if (idx >= 0) {
+                list[idx] = Object.assign({}, list[idx], { status }, extra || {});
+                localStorage.setItem('rn_residents', JSON.stringify(list));
+            }
+        } catch (e) {}
+    }
+
+    /* The login form is NEVER hidden — the pending card is just a status banner.
+     * Blocking happens inside the submit handler after we check the server. */
+    function lockLoginForApproval() { /* no-op — kept for backwards-compat */ }
+    function unlockLogin()          { /* no-op */ }
+
+    function renderPendingCard(state, meta) {
+        const card  = document.getElementById('pendingCard');
+        const icon  = document.getElementById('pendingIcon');
+        const title = document.getElementById('pendingTitle');
+        const sub   = document.getElementById('pendingSub');
+        const body  = document.getElementById('pendingBody');
+        const dot   = document.getElementById('pendingDot');
+        const contact = document.getElementById('pendingContact');
+        if (!card) return;
+        card.hidden = false;
+        const m = meta || {};
+        if (m.email || m.phone) contact.textContent = m.email || m.phone;
+
+        if (state === 'approved') {
+            icon.textContent = '\u2713';
+            icon.style.background = '#16a34a';
+            icon.style.boxShadow = '0 6px 14px rgba(22,163,74,0.35)';
+            card.style.background = 'linear-gradient(180deg,#eaf8ef 0%,#ffffff 100%)';
+            card.style.borderColor = 'rgba(22,163,74,0.35)';
+            title.textContent = 'Approved \u2713 Sign in below';
+            sub.textContent   = 'Your account has been activated by a barangay official.';
+            body.innerHTML    = 'A confirmation was sent to <b>' + (m.email || m.phone || 'your contact') + '</b>. Enter your password to continue.';
+            dot.style.background = '#16a34a';
+            dot.parentElement.firstChild && (dot.parentElement.childNodes[1].nodeValue = ' Approved');
+            unlockLogin();
+            approvalResolved = true;
+            if (approvalPollTimer) { clearInterval(approvalPollTimer); approvalPollTimer = null; }
+        } else if (state === 'rejected') {
+            icon.textContent = '\u26A0';
+            icon.style.background = '#dc2626';
+            card.style.background = 'linear-gradient(180deg,#fdecec 0%,#ffffff 100%)';
+            card.style.borderColor = 'rgba(220,38,38,0.35)';
+            title.textContent = 'Registration not approved';
+            sub.textContent   = 'Please visit the barangay hall for follow-up.';
+            body.innerHTML   = 'A barangay official rejected this registration. Contact the barangay hall or re-register with corrected documents.';
+            dot.style.background = '#dc2626';
+            approvalResolved = true;
+            if (approvalPollTimer) { clearInterval(approvalPollTimer); approvalPollTimer = null; }
+        } else if (state === 'missing') {
+            title.textContent = 'Awaiting approval';
+            sub.textContent   = 'Locating your registration…';
+            body.innerHTML    = 'We could not find your record yet. This page will retry automatically.';
+        } else { /* pending */
+            title.textContent = 'Awaiting approval';
+            sub.textContent   = 'A barangay official will review your registration.';
+        }
+    }
+
+    (function initPendingOrWelcome() {
+        const params = new URLSearchParams(window.location.search);
+        const pending = params.get('pending') === '1' || params.get('registered') === '1';
+        const ptr = (function(){ try { return JSON.parse(localStorage.getItem('rn_pending_resident') || 'null'); } catch(e){ return null; } })();
+        const hasPointer = !!(ptr && (ptr.email || ptr.phone));
+        const saved = readPendingContact();
+        const savedEmail = saved.email;
+        const savedPhone = saved.phone;
+
+        if (pending) {
+            const box = document.getElementById('welcomeBox');
+            if (box) box.innerHTML = '<h1>Thank you for registering</h1><p>A barangay official will review your account. You’ll be notified once approved.</p>';
+            renderPendingCard('pending', { email: savedEmail, phone: savedPhone });
+            const emailInput = document.getElementById('email');
+            if (emailInput && (savedEmail || savedPhone)) emailInput.value = savedEmail || savedPhone;
+            history.replaceState(null, '', 'index.html');
+        } else if (hasPointer) {
+            // Reopened browser while still waiting — bring the card back so the
+            // resident sees the approval banner without needing to sign in first.
+            renderPendingCard('pending', { email: ptr.email, phone: ptr.phone });
+            const emailInput = document.getElementById('email');
+            if (emailInput && !emailInput.value) emailInput.value = ptr.email || ptr.phone;
+        } else {
+            // Normal returning user: no pointer, no banner. Just prefill if we have session data.
+            if (savedEmail || savedPhone) {
+                const emailInput = document.getElementById('email');
+                if (emailInput && !emailInput.value) emailInput.value = savedEmail || savedPhone;
+            }
+            return; // no polling when there's no pointer to check
+        }
+
+        // Poll for approval (only reached when pending card is displayed)
+        const targetEmail = savedEmail || (ptr && ptr.email) || '';
+        const targetPhone = savedPhone || (ptr && ptr.phone) || '';
+        if (!targetEmail && !targetPhone) return;
+        const mergeToLocalFromRecord = (rec) => {
+            if (!rec) return;
+            try {
+                const list = JSON.parse(localStorage.getItem('rn_residents') || '[]');
+                const keyE = (rec.email || '').toLowerCase();
+                const keyP = String(rec.phone || '').replace(/\s/g, '');
+                const idx = list.findIndex(r =>
+                    (keyE && (r.email || '').toLowerCase() === keyE) ||
+                    (keyP && String(r.phone || '').replace(/\s/g, '') === keyP)
+                );
+                if (idx >= 0) {
+                    list[idx] = Object.assign({}, list[idx], rec, { status: 'approved', approvedAt: rec.approvedAt || new Date().toISOString() });
+                } else {
+                    list.unshift(Object.assign({}, rec, { status: 'approved', approvedAt: rec.approvedAt || new Date().toISOString() }));
+                }
+                localStorage.setItem('rn_residents', JSON.stringify(list));
+            } catch (e) {}
+        };
+        const check = async () => {
+            if (approvalResolved) return;
+            const q = EMAIL_RE.test(targetEmail)
+                ? ('email=' + encodeURIComponent(targetEmail))
+                : ('phone=' + encodeURIComponent(targetPhone || targetEmail));
+            try {
+                const r = await fetch(API_BASE + '/api/resident/status?' + q, { cache: 'no-store' });
+                if (!r.ok) return;
+                const data = await r.json();
+                if (!data || !data.found) { renderPendingCard('missing', { email: targetEmail, phone: targetPhone }); return; }
+                const contact = { email: (data.resident && data.resident.email) || targetEmail, phone: (data.resident && data.resident.phone) || targetPhone };
+                if (data.status === 'approved') {
+                    mergeToLocalFromRecord(data.resident);
+                    renderPendingCard('approved', contact);
+                    try { localStorage.removeItem('rn_pending_resident'); } catch(e){}
+                    try { sessionStorage.removeItem('rescueEmail'); sessionStorage.removeItem('rescuePhone'); } catch(e){}
+                } else if (data.status === 'rejected') {
+                    mergeStatusToLocal(targetEmail || targetPhone, 'rejected');
+                    renderPendingCard('rejected', contact);
+                } else {
+                    mergeStatusToLocal(targetEmail || targetPhone, 'pending');
+                }
+            } catch (e) { /* server offline; keep card in pending state */ }
+        };
+        check();
+        if (approvalPollTimer) clearInterval(approvalPollTimer);
+        approvalPollTimer = setInterval(check, 6000);
+    })();
+
+
+    /* SHOW / HIDE PASSWORD */
+    function togglePassword() {
+        const password = document.getElementById("password");
+        const button = document.getElementById("passwordButton");
+        if (password.type === "password") {
+            password.type = "text";
+            button.textContent = "\ud83d\ude48";
+        } else {
+            password.type = "password";
+            button.textContent = "\ud83d\udc41";
+        }
+    }
+
+
+    /* LOGIN FORM — gate on approval status before allowing entry */
+    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!email || !password) return;
+
+        const residents = JSON.parse(localStorage.getItem('rn_residents') || '[]');
+        let resident = residents.find(function(r) {
+            var matchEmail = (r.email || '').toLowerCase() === email.toLowerCase();
+            var matchPhone = (r.phone || '').replace(/\s/g, '') === email.replace(/\s/g, '');
+            return matchEmail || matchPhone;
+        });
+
+        // Ask the server for the authoritative status (this also fixes the case where
+        // the user cleared localStorage but their account is actually approved).
+        let status = resident && resident.status ? resident.status : null;
+        let serverFound = null;
+        let serverReachable = false;
+        try {
+            const q = EMAIL_RE.test(email)
+                ? ('email=' + encodeURIComponent(email))
+                : ('phone=' + encodeURIComponent(email));
+            const r = await fetch(API_BASE + '/api/resident/status?' + q, { cache: 'no-store' });
+            if (r.ok) {
+                const data = await r.json();
+                serverReachable = true;
+                if (data && data.found) {
+                    status = data.status || 'pending';
+                    serverFound = data.resident;
+                    if (!resident) resident = serverFound;
+                }
+            }
+        } catch (e) { /* offline */ }
+
+        // Merge approved status back into local so future offline sign-ins work
+        if (status === 'approved' && serverFound) {
+            try {
+                const list = JSON.parse(localStorage.getItem('rn_residents') || '[]');
+                const keyE = (serverFound.email || '').toLowerCase();
+                const keyP = String(serverFound.phone || '').replace(/\s/g, '');
+                const idx = list.findIndex(r =>
+                    (keyE && (r.email || '').toLowerCase() === keyE) ||
+                    (keyP && String(r.phone || '').replace(/\s/g, '') === keyP)
+                );
+                if (idx >= 0) list[idx] = Object.assign({}, list[idx], serverFound, { status: 'approved' });
+                else list.unshift(Object.assign({}, serverFound, { status: 'approved' }));
+                localStorage.setItem('rn_residents', JSON.stringify(list));
+                try { localStorage.removeItem('rn_pending_resident'); } catch(e){}
+            } catch (e) {}
+        }
+
+        if (!resident) {
+            if (!serverReachable) {
+                alert('Cannot reach the RescueNet server. Check your connection and try again.');
+                return;
+            }
+            alert('No account found for "' + email + '". Please register first or check your email/phone.');
+            return;
+        }
+
+        // Graceful degradation: if the server is unreachable but the local record is
+        // already flagged approved, allow login. If server says pending/rejected, block.
+        if (status === 'approved') {
+            // fall through to sign in
+        } else if (status === 'rejected') {
+            renderPendingCard('rejected', { email: resident.email, phone: resident.phone });
+            try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+            return;
+        } else if (status === 'pending') {
+            renderPendingCard('pending', { email: resident.email, phone: resident.phone });
+            try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+            return;
+        } else {
+            // status unknown (never recorded) AND server unreachable → be permissive for
+            // existing installs that predate the approval gate, but block brand-new ones.
+            if (!serverReachable) {
+                // Allow through; the local record exists which means they registered on this device
+                console.warn('[Login] approval server unreachable; allowing local record');
+            } else {
+                renderPendingCard('pending', { email: resident.email, phone: resident.phone });
+                try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+                return;
+            }
+        }
+
+        // Store logged-in user session
+        try {
+            sessionStorage.setItem('rn_current_user', JSON.stringify({
+                id: resident.id || '',
+                firstName: resident.firstName || '',
+                lastName: resident.lastName || '',
+                email: resident.email || email,
+                phone: resident.phone || ''
+            }));
+            sessionStorage.setItem('rescueNetUserEmail', resident.email || email);
+            sessionStorage.removeItem('rescueEmail');
+            sessionStorage.removeItem('rescuePhone');
+            try { localStorage.removeItem('rn_pending_resident'); } catch(e){}
+        } catch (e) {}
+
+        window.location.href = "dashboard.html";
+    });
+
+</script>
+
+</body>
+</html>
