@@ -479,10 +479,10 @@
             left: 20px;
             right: 20px;
             bottom: 20px;
-            padding: 7px;
+            padding: 5px;
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 5px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
             /* Slightly tinted off-white so the pill visibly differs from the
              * pure-white .content area behind it (was rgba(255,255,255,0.92)
              * which is indistinguishable from the white app background). */
@@ -490,14 +490,14 @@
             /* Stronger, thicker border (22% navy vs the previous 10%) so the
              * pill's rounded edge reads clearly on small phone screens. */
             border: 1.5px solid rgba(16, 45, 92, 0.22);
-            border-radius: 22px;
+            border-radius: 18px;
             /* Layered shadow: tight contact shadow + soft elevation shadow.
              * Much stronger than before so the pill floats visibly above the
              * content even without relying on backdrop-filter. */
             box-shadow:
                 0 0 0 1px rgba(255, 255, 255, 0.9) inset,   /* inner top highlight */
                 0 2px 4px  rgba(16, 45, 92, 0.10),           /* contact shadow */
-                0 10px 28px rgba(16, 45, 92, 0.18);          /* elevation shadow */
+                0 8px 22px rgba(16, 45, 92, 0.16);           /* elevation shadow */
             backdrop-filter: saturate(180%) blur(16px);
             -webkit-backdrop-filter: saturate(180%) blur(16px);
             z-index: 5;
@@ -508,32 +508,32 @@
             /* No border on the individual tab — only the outer pill has one. */
             border: none;
             background: transparent;
-            padding: 8px 4px 7px;
+            padding: 5px 3px 4px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 3px;
             color: var(--muted);
-            font-size: 9.5px;
+            font-size: 8.5px;
             font-weight: 600;
             letter-spacing: 0.3px;
-            border-radius: 15px;
+            border-radius: 12px;
             transition: color 0.22s ease,
                         background-color 0.22s ease,
                         box-shadow 0.22s ease;
         }
 
         .nav-tab .nav-ico {
-            width: 34px; height: 24px;
+            width: 28px; height: 20px;
             border-radius: 999px;
             display: grid;
             place-items: center;
             transition: background-color 0.22s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .nav-tab svg {
-            width: 20px; height: 20px;
+            width: 17px; height: 17px;
             stroke-width: 1.7;
             transition: stroke-width 0.22s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -559,11 +559,11 @@
         .nav-tab.active::after {
             content: '';
             position: absolute;
-            bottom: 3px;
-            width: 4px; height: 4px;
+            bottom: 2px;
+            width: 3px; height: 3px;
             border-radius: 50%;
             background: var(--orange);
-            box-shadow: 0 0 0 3px rgba(255, 101, 0, 0.16);
+            box-shadow: 0 0 0 2px rgba(255, 101, 0, 0.16);
         }
         .nav-tab.danger.active .nav-ico { background: rgba(220, 38, 38, 0.14); }
         .nav-tab.danger.active svg { color: var(--err); }
@@ -571,17 +571,17 @@
 
         /* SOS: small rounded-rectangle badge with “SOS” text, center of the dock */
         .nav-tab.danger .nav-ico {
-            width: 46px; height: 30px;
-            border-radius: 10px;
+            width: 40px; height: 26px;
+            border-radius: 8px;
             background: var(--err);
-            border: 2px solid #ffffff;
-            box-shadow: 0 5px 14px rgba(220, 38, 38, 0.36);
-            outline: 2px solid rgba(220, 38, 38, 0.30);
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.36);
+            outline: 1.5px solid rgba(220, 38, 38, 0.30);
             outline-offset: 2px;
             color: #ffffff;
-            font-size: 13px;
+            font-size: 11.5px;
             font-weight: 800;
-            letter-spacing: 1.2px;
+            letter-spacing: 1px;
             line-height: 1;
             display: grid;
             place-items: center;
@@ -599,7 +599,7 @@
         }
         .nav-tab.danger.active .nav-ico {
             background: var(--err);
-            box-shadow: 0 6px 18px rgba(220, 38, 38, 0.48);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.48);
             outline-color: rgba(220, 38, 38, 0.48);
         }
 
@@ -614,9 +614,9 @@
                 right: 14px;
                 bottom: 14px;
                 /* Preserve the floating pill: keep rounded corners + full border + elevation shadow */
-                border-radius: 22px;
+                border-radius: 18px;
                 border: 1.5px solid rgba(16, 45, 92, 0.22);
-                padding: 6px;
+                padding: 4px;
             }
         }
 
@@ -801,7 +801,7 @@
             100% { box-shadow: 0 0 0 0 transparent; opacity: 1; }
         }
 
-        #sosMap {
+        #sosMap, #hhMap {
             height: 240px;
             width: 100%;
             background: var(--soft);
@@ -1098,8 +1098,66 @@
             font-variant-numeric: tabular-nums;
         }
         .home-loc-card .loc-meta b { color: var(--navy); font-weight: 600; }
-        .home-loc-card .btn-row { display: flex; gap: 8px; }
-        .home-loc-card .btn-row .btn { height: 42px; font-size: 12.5px; flex: 1; }
+        /* Home-location button row — the Capture / Clear pair under the map.
+         * Rules:
+         *   1. Consistent 10px gutter between the two buttons and their
+         *      neighbours above/below.
+         *   2. Capture stretches to fill the row; Clear sits flush right at
+         *      a stable compact width so the pair never looks lopsided.
+         *   3. Same 44px height so the tap targets line up exactly.
+         *   4. Long capture labels ("Reading GPS… hold still", "Requesting
+         *      permission…") ellipsize instead of forcing the row wider
+         *      or pushing the Clear button off-screen.
+         *   5. The icon inside the primary button doesn't drift away from
+         *      the text.
+         *   6. Critical: base .btn sets width: 100%, which in a flex row
+         *      would make the shrink-hugged Clear button eat the entire
+         *      container width. Reset to width: auto inside .btn-row and
+         *      give both buttons explicit flex bases so they sit side by
+         *      side cleanly with Capture taking the leftover space. */
+        .home-loc-card .btn-row {
+            display: flex;
+            align-items: stretch;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: nowrap;
+        }
+        .home-loc-card .btn-row .btn {
+            width: auto;
+            height: 44px;
+            font-size: 13px;
+            padding: 0 16px;
+            gap: 8px;
+            min-width: 0;
+            border-radius: 12px;
+            line-height: 1.15;
+            white-space: nowrap;
+        }
+        .home-loc-card .btn-row .btn svg { flex-shrink: 0; width: 16px; height: 16px; }
+        .home-loc-card .btn-row #captureHomeBtn {
+            flex: 1 1 0;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .home-loc-card .btn-row #captureHomeBtn > span {
+            flex: 0 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+        }
+        .home-loc-card .btn-row #clearHomeBtn {
+            flex: 0 0 auto;
+            width: auto;
+            min-width: 92px;
+            padding: 0 20px;
+            justify-content: center;
+        }
+        @media (max-width: 360px) {
+            .home-loc-card .btn-row { gap: 8px; }
+            .home-loc-card .btn-row .btn { padding: 0 12px; }
+            .home-loc-card .btn-row #clearHomeBtn { min-width: 76px; padding: 0 14px; }
+        }
         .home-loc-card .pin-icon { color: var(--orange); }
 
         /* Custom GPS user marker */
@@ -2009,16 +2067,14 @@
                         <span id="captureBtnText">Re-capture Location</span>
                     </button>
 
-                    <div class="capture-meta" id="captureMeta">
-                        <span class="k">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg>
-                            Status
-                        </span>
-                        <span>
-                            <span id="captureSummary">Auto-capturing your GPS… hold still for a few seconds.</span>
-                            <span class="badge" id="captureBadge">auto</span>
-                        </span>
-                    </div>
+                    <!-- The Status / capture-summary / auto-badge block was
+                         removed because the Re-capture button's own state
+                         classes (busy / captured / error) plus the GPS
+                         coordinates strip on the map already tell the user
+                         whether a fix has been locked in. The setters
+                         setCaptureBadge() and setCaptureSummary() are now
+                         null-safe so existing JS call-sites keep working
+                         without a visible element. -->
 
                     <!-- NEAREST AVAILABLE RESPONDER -->
                     <div class="responder-proximity" id="nearestResponder" hidden>
@@ -2131,19 +2187,11 @@
                 </div>
             </div>
 
-            <!-- Precise coordinates for both parties -->
-            <div class="live-coords">
-                <div class="lc-cell you">
-                    <div class="lc-k"><span class="lc-dot"></span>Your location</div>
-                    <div class="lc-v" id="lcYouCoord">Acquiring GPS…</div>
-                    <div class="lc-sub" id="lcYouSub">Waiting for high-accuracy fix</div>
-                </div>
-                <div class="lc-cell them">
-                    <div class="lc-k"><span class="lc-dot"></span><span id="lcThemLabel">Responder</span></div>
-                    <div class="lc-v" id="lcThemCoord">Not yet dispatched</div>
-                    <div class="lc-sub" id="lcThemSub">Waiting for assignment</div>
-                </div>
-            </div>
+            <!-- Precise coordinate chips (Your location / Responder) intentionally
+                 removed from under the tracking map per product request. The
+                 #lcYouCoord / #lcThemCoord IDs are still referenced by
+                 updateCoordChips() but every access is guarded with a null
+                 check, so removing the DOM here is safe. -->
 
             <!-- Responder info card (revealed when assignment arrives) -->
             <div class="card responder-card" id="responderCard" style="display:none;">
@@ -2273,17 +2321,35 @@
                 </div>
 
                 <!-- Auto GPS capture pill (household safety)
-                     Shows live fix acquisition + last confirmed coords so the
-                     resident knows their precise location will be sent to the
-                     Barangay Official's monitoring map. -->
+                     Live map + real-time GPS watch, same look and interaction
+                     as the SOS screen's "Current Location" panel. The pin,
+                     accuracy ring and coords readout update as satellite
+                     fixes stream in; the coords are attached to the
+                     household POST so the admin's monitoring map sees the
+                     exact location. -->
                 <div class="field">
-                    <label>Precise location (auto)</label>
-                    <div class="card" id="hhLocCard" style="padding:12px 14px; display:flex; align-items:center; gap:12px;">
-                        <div style="flex:1; min-width:0;">
-                            <div id="hhLocTitle" style="font-weight:800; font-size:13px;">Ready — will capture on submit</div>
-                            <div id="hhLocSub" style="font-size:11.5px; color:var(--muted); margin-top:2px;">We'll grab a high-accuracy GPS fix when you tap Update.</div>
+                    <label>Current Location</label>
+                    <div class="map-wrap">
+                        <div class="map-head">
+                            <span class="label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                Live location
+                            </span>
+                            <span class="status" id="hhGpsStatus">
+                                <span class="pulse"></span>
+                                <span id="hhGpsStatusText">Acquiring</span>
+                            </span>
                         </div>
-                        <button type="button" class="btn sm ghost" id="hhLocRefresh" title="Refresh GPS now">↻</button>
+                        <div id="hhMap"></div>
+                        <button type="button" class="map-overlay-btn" id="hhCenterBtn" aria-label="Re-center on my location">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                            Center
+                        </button>
+                        <div class="map-coords">
+                            <span>Lat <b id="hhGpsLat">—</b></span>
+                            <span>Lng <b id="hhGpsLng">—</b></span>
+                            <span>Acc <b id="hhGpsAcc">—</b></span>
+                        </div>
                     </div>
                 </div>
 
@@ -2488,7 +2554,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
                         <span id="captureHomeBtnText">Capture My Location</span>
                     </button>
-                    <button type="button" class="btn ghost" id="clearHomeBtn" style="flex: 0 0 auto; padding: 0 14px; display: none;">Clear</button>
+                    <button type="button" class="btn ghost" id="clearHomeBtn" style="display: none;">Clear</button>
                 </div>
             </div>
 
@@ -2558,7 +2624,13 @@
 
     </div>
 
-    <!-- BOTTOM NAV -->
+    <!-- BOTTOM NAV
+         Report and Guides were removed from this bar (they were
+         redundant with the Home-screen Quick Actions tiles) so only
+         Home / SOS / Profile remain. The Report and Guides screens
+         themselves still exist and are still reachable through the
+         Quick Actions tiles which use data-tab="report" and
+         data-tab="guides". -->
     <nav class="bottom-nav" aria-label="Primary">
         <button class="nav-tab active" data-tab="home">
             <span class="nav-ico">
@@ -2566,20 +2638,8 @@
             </span>
             Home
         </button>
-        <button class="nav-tab" data-tab="report">
-            <span class="nav-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="17" rx="3"/><path d="M9 3h6v3H9z"/><path d="M8 12h8M8 16h5"/></svg>
-            </span>
-            Report
-        </button>
         <button class="nav-tab danger" data-tab="sos">
             <span class="nav-ico">SOS</span>
-        </button>
-        <button class="nav-tab" data-tab="guides">
-            <span class="nav-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22z"/><path d="M4 20.5V6"/><path d="M9 7h7M9 11h5"/></svg>
-            </span>
-            Guides
         </button>
         <button class="nav-tab" data-tab="profile">
             <span class="nav-ico">
@@ -2595,6 +2655,129 @@
 
 <script src="config.js"></script>
 <script>
+    /* =====================================================
+       APPROVAL GATE — runs before anything else on the page
+       =====================================================
+       Residents must be explicitly approved by a barangay
+       admin before they can access the dashboard. The gate
+       checks three things in order:
+
+         1. Is there a signed-in session (rn_current_user)?
+            If not → straight to index.html login.
+         2. What does the local rn_residents record say?
+            'rejected'  → clear session, back to login.
+            'pending'   → back to login in pending-view mode.
+            'approved'  → pass, but still cross-check (3).
+            null/other  → treat as not approved.
+         3. Ask the server (/api/resident/status) for the
+            authoritative answer. This catches admins
+            approving / rejecting from a different device
+            and heals stale local data.
+
+       If the fetch fails (offline APK path) we fall back
+       to whatever the local record said, BUT only allow
+       through when it explicitly said 'approved' — this
+       is the fix for the reported "auto approval" bug.
+       ===================================================== */
+    (async function enforceApprovalGate() {
+        const API = (window.RN_SERVER || 'http://10.156.89.119:3000');
+        let user = null;
+        try { user = JSON.parse(sessionStorage.getItem('rn_current_user') || 'null'); } catch (e) {}
+        if (!user || (!user.email && !user.phone)) {
+            try { window.location.replace('index.html'); } catch (e) {}
+            return;
+        }
+        const em = String(user.email || '').toLowerCase();
+        const ph = String(user.phone || '').replace(/\D/g, '');
+        const uid = user.id || '';
+        let local = null;
+        try {
+            const list = JSON.parse(localStorage.getItem('rn_residents') || '[]');
+            local = list.find(function (r) {
+                if (uid && r.id === uid) return true;
+                if (em && String(r.email || '').toLowerCase() === em) return true;
+                if (ph && String(r.phone || '').replace(/\D/g, '') === ph) return true;
+                return false;
+            }) || null;
+        } catch (e) {}
+        const localStatus = (local && local.status) ? String(local.status).toLowerCase() : null;
+
+        /* Fast local block: pending / rejected never need a network roundtrip. */
+        if (localStatus === 'rejected') {
+            try { sessionStorage.removeItem('rn_current_user'); sessionStorage.removeItem('rescueNetUserEmail'); } catch (e) {}
+            try { window.location.replace('index.html?rejected=1'); } catch (e) {}
+            return;
+        }
+        if (localStatus === 'pending') {
+            try { window.location.replace('index.html?pending=1'); } catch (e) {}
+            return;
+        }
+        /* No local record and status is unknown → the resident registered on
+         * another device (or cleared storage). Fall through to server check. */
+
+        /* Authoritative server check. */
+        let serverStatus = null;
+        let serverFound = null;
+        let reachable = false;
+        try {
+            const q = em
+                ? ('email=' + encodeURIComponent(user.email || ''))
+                : ('phone=' + encodeURIComponent(user.phone || ''));
+            const ctrl = new AbortController();
+            const killer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 5000);
+            const res = await fetch(API + '/api/resident/status?' + q, { cache: 'no-store', signal: ctrl.signal });
+            clearTimeout(killer);
+            if (res.ok) {
+                const data = await res.json();
+                reachable = true;
+                if (data && data.found) {
+                    serverStatus = String(data.status || 'pending').toLowerCase();
+                    serverFound = data.resident || null;
+                } else {
+                    reachable = true;
+                    serverStatus = 'missing';
+                }
+            }
+        } catch (e) { /* offline */ }
+
+        if (reachable) {
+            if (serverStatus === 'approved') {
+                /* Heal local record so future offline loads still work. */
+                try {
+                    const list = JSON.parse(localStorage.getItem('rn_residents') || '[]');
+                    const idx = list.findIndex(function (r) {
+                        if (uid && r.id === uid) return true;
+                        if (em && String(r.email || '').toLowerCase() === em) return true;
+                        if (ph && String(r.phone || '').replace(/\D/g, '') === ph) return true;
+                        return false;
+                    });
+                    if (idx >= 0) {
+                        list[idx] = Object.assign({}, list[idx], serverFound || {}, { status: 'approved', approvedAt: (serverFound && serverFound.approvedAt) || new Date().toISOString() });
+                        localStorage.setItem('rn_residents', JSON.stringify(list));
+                    } else if (serverFound) {
+                        list.unshift(Object.assign({}, serverFound, { status: 'approved' }));
+                        localStorage.setItem('rn_residents', JSON.stringify(list));
+                    }
+                } catch (e) {}
+                /* pass — allow the rest of the dashboard boot */
+                return;
+            }
+            if (serverStatus === 'rejected') {
+                try { sessionStorage.removeItem('rn_current_user'); sessionStorage.removeItem('rescueNetUserEmail'); } catch (e) {}
+                try { window.location.replace('index.html?rejected=1'); } catch (e) {}
+                return;
+            }
+            /* pending or missing → kick back to the login screen which shows the waiting card */
+            try { window.location.replace('index.html?pending=1'); } catch (e) {}
+            return;
+        }
+
+        /* Server unreachable — trust local state. Only 'approved' passes. */
+        if (localStatus === 'approved') return;         /* legacy offline OK */
+        /* Anything else (null, 'new', unknown) is treated as unapproved. */
+        try { window.location.replace('index.html?pending=1'); } catch (e) {}
+    })();
+
     /* =====================================================
        NAVIGATION
        ===================================================== */
@@ -3085,13 +3268,16 @@
 
     function setCaptureBadge(kind, text) {
         const b = document.getElementById('captureBadge');
+        if (!b) return;                                    // status chip removed
         b.classList.remove('ok', 'warn', 'err');
         if (kind) b.classList.add(kind);
         b.textContent = text;
     }
 
     function setCaptureSummary(html) {
-        document.getElementById('captureSummary').innerHTML = html;
+        const el = document.getElementById('captureSummary');
+        if (!el) return;                                   // status text removed
+        el.innerHTML = html;
     }
 
     function drawCapturedPin(lat, lng, accuracy) {
@@ -3219,7 +3405,7 @@
                 if (!r || typeof r.lat !== 'number' || typeof r.lng !== 'number') return;
                 const ageMs = r.updatedAt ? (Date.now() - new Date(r.updatedAt).getTime()) : Infinity;
                 if (ageMs > 15 * 60 * 1000) return; // stale fix — skip
-                const d = haversineMeters(me, { lat: r.lat, lng: r.lng });
+                const d = vincentyMeters(me, { lat: r.lat, lng: r.lng });
                 if (d == null) return;
                 list.push({
                     id: id, name: r.name || id, role: r.role || 'Responder',
@@ -3663,6 +3849,12 @@
                 if (saved) renderHomeLocation(saved);
             }, 120);
         }
+        if (tab === 'household') {
+            // Same live-map boot as the SOS screen: create Leaflet map,
+            // start high-accuracy watch, invalidateSize after reveal.
+            initHouseholdMap();
+            setTimeout(() => HH_STATE.map && HH_STATE.map.invalidateSize(), 150);
+        }
     };
 
     /* =====================================================
@@ -3941,29 +4133,162 @@
     // Populated by the manual "↻" refresh button or automatically on submit.
     let _hhGpsFix = null;   // { lat, lng, accuracy, capturedAt }
 
-    function _hhSetLocUI(title, sub, tone) {
-        const t = document.getElementById('hhLocTitle');
-        const s = document.getElementById('hhLocSub');
-        const c = document.getElementById('hhLocCard');
-        if (t) t.textContent = title;
-        if (s) s.textContent = sub;
-        if (c) {
-            c.style.borderColor = tone === 'ok'
-                ? 'rgba(22,163,74,0.35)'
-                : tone === 'err'
-                    ? 'rgba(220,38,38,0.35)'
-                    : 'var(--line)';
-            c.style.background = tone === 'ok'
-                ? 'rgba(22,163,74,0.06)'
-                : tone === 'err'
-                    ? 'rgba(220,38,38,0.05)'
-                    : 'var(--surface)';
+    /* -------- Household safety live map (mirrors the SOS map) --------
+     * Same Leaflet + Google tiles stack, same orange pin + accuracy ring,
+     * same pulse-dot "Live location" status, same coords strip. Kept in a
+     * separate HH_STATE so both screens can coexist without fighting for
+     * the same watch id. */
+    const HH_STATE = {
+        map: null,
+        marker: null,
+        accuracyCircle: null,
+        watchId: null,
+        lastPos: null,       // latest raw fix { lat, lng, accuracy, ts }
+        bestFix: null        // lowest accuracy meters seen
+    };
+
+    function hhSetStatus(kind, text) {
+        const el = document.getElementById('hhGpsStatus');
+        const tx = document.getElementById('hhGpsStatusText');
+        if (!el) return;
+        el.classList.remove('ok', 'err');
+        if (kind === 'ok')  el.classList.add('ok');
+        if (kind === 'err') el.classList.add('err');
+        if (tx) tx.textContent = text;
+    }
+
+    function initHouseholdMap() {
+        if (HH_STATE.map) {
+            setTimeout(() => HH_STATE.map && HH_STATE.map.invalidateSize(), 120);
+            return;
         }
+        if (typeof L === 'undefined') {
+            document.addEventListener('rnmapsready', function () { try { initHouseholdMap(); } catch(e){} }, { once: true });
+            return;
+        }
+        const el = document.getElementById('hhMap');
+        if (!el) return;
+
+        HH_STATE.map = L.map(el, {
+            zoomControl: false,
+            attributionControl: true,
+            dragging: true,
+            scrollWheelZoom: false,
+            tap: true
+        }).setView([13.35, 123.75], 12);
+        addTileLayer(HH_STATE.map);
+        L.control.zoom({ position: 'topleft' }).addTo(HH_STATE.map);
+        setTimeout(() => HH_STATE.map && HH_STATE.map.invalidateSize(), 250);
+        hhStartGpsWatch();
+    }
+
+    function hhStartGpsWatch() {
+        if (!(window.RNLocation || ('geolocation' in navigator))) {
+            hhSetStatus('err', 'No GPS');
+            return;
+        }
+        if (HH_STATE.watchId !== null && HH_STATE.watchId !== undefined) return;
+        hhSetStatus('', 'Acquiring');
+        const opts = {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 0,
+            minimumUpdateInterval: 2000
+        };
+        if (window.RNLocation) {
+            RNLocation.ensurePermission().then(granted => {
+                if (!granted) { hhOnGpsError({ code: 1, message: 'Permission denied' }); return; }
+                HH_STATE.watchId = RNLocation.watchPosition(hhOnGpsUpdate, hhOnGpsError, opts);
+            });
+        } else {
+            HH_STATE.watchId = navigator.geolocation.watchPosition(hhOnGpsUpdate, hhOnGpsError, opts);
+        }
+    }
+
+    function hhOnGpsUpdate(pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const accuracy = pos.coords.accuracy || 999;
+        HH_STATE.lastPos = {
+            lat, lng, accuracy,
+            altitude: pos.coords.altitude ?? null,
+            speed:    pos.coords.speed    ?? null,
+            heading:  pos.coords.heading  ?? null,
+            ts: pos.timestamp || Date.now()
+        };
+        if (!HH_STATE.bestFix || accuracy < HH_STATE.bestFix.accuracy) {
+            HH_STATE.bestFix = { ...HH_STATE.lastPos };
+        }
+
+        // Persist as the freshest household GPS fix so submit can use it instantly
+        _hhGpsFix = {
+            lat, lng, accuracy,
+            capturedAt: new Date(HH_STATE.lastPos.ts || Date.now()).toISOString()
+        };
+        try { localStorage.setItem('rn_resident_location', JSON.stringify(_hhGpsFix)); } catch(e){}
+
+        const latEl = document.getElementById('hhGpsLat');
+        const lngEl = document.getElementById('hhGpsLng');
+        const accEl = document.getElementById('hhGpsAcc');
+        if (latEl) latEl.textContent = lat.toFixed(6);
+        if (lngEl) lngEl.textContent = lng.toFixed(6);
+        if (accEl) accEl.textContent = Math.round(accuracy) + ' m';
+        hhSetStatus('ok', 'Live');
+
+        // Same pin style + accuracy ring as the SOS screen
+        const icon = makeLocationPin('#ff6500', false);
+        if (!HH_STATE.marker) {
+            HH_STATE.marker = L.marker([lat, lng], { icon, title: 'You are here', zIndexOffset: 1200 })
+                .addTo(HH_STATE.map)
+                .bindPopup('<b>Precise live location</b><br>' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '  ·  ' + Math.round(accuracy) + ' m');
+            HH_STATE.accuracyCircle = L.circle([lat, lng], {
+                radius: accuracy,
+                color: '#ff6500',
+                weight: 1.2,
+                fillColor: '#ff6500',
+                fillOpacity: 0.12,
+                opacity: 0.35,
+                dashArray: '3 4'
+            }).addTo(HH_STATE.map);
+            HH_STATE.map.setView([lat, lng], 17, { animate: true });
+        } else {
+            HH_STATE.marker.setLatLng([lat, lng]);
+            HH_STATE.marker.setPopupContent('<b>Precise live location</b><br>' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '  ·  ' + Math.round(accuracy) + ' m');
+            HH_STATE.accuracyCircle.setLatLng([lat, lng]);
+            HH_STATE.accuracyCircle.setRadius(accuracy);
+        }
+    }
+
+    function hhOnGpsError(err) {
+        const msg = err && err.code === 1 ? 'Permission denied'
+                  : err && err.code === 2 ? 'Signal lost'
+                  : 'GPS unavailable';
+        hhSetStatus('err', msg);
+        const latEl = document.getElementById('hhGpsLat');
+        const lngEl = document.getElementById('hhGpsLng');
+        const accEl = document.getElementById('hhGpsAcc');
+        if (latEl && latEl.textContent === '—') latEl.textContent = '?';
+        if (lngEl && lngEl.textContent === '—') lngEl.textContent = '?';
+        if (accEl && accEl.textContent === '—') accEl.textContent = '?';
+    }
+
+    const _hhCenterBtn = document.getElementById('hhCenterBtn');
+    if (_hhCenterBtn) _hhCenterBtn.addEventListener('click', function () {
+        if (!HH_STATE.map) return;
+        const p = HH_STATE.bestFix || HH_STATE.lastPos || _hhGpsFix;
+        if (!p || !Number.isFinite(p.lat)) { hhSetStatus('err', 'No fix yet'); return; }
+        HH_STATE.map.setView([p.lat, p.lng], 17, { animate: true });
+        if (HH_STATE.marker) HH_STATE.marker.openPopup();
+    });
+
+    function _hhSetLocUI(title, sub, tone) {
+        // Legacy helper kept as a no-op — the household screen now uses the
+        // full Leaflet map + coords strip, so the old pill UI is gone.
+        void title; void sub; void tone;
     }
 
     async function _hhCaptureGps(maxMs) {
         maxMs = maxMs || 5000;
-        _hhSetLocUI('Acquiring GPS… hold still', 'Sampling satellite fixes for higher accuracy', 'info');
         try {
             const samples = await collectGpsSamples(4, maxMs);
             const merged = weightedMean(samples);
@@ -3976,17 +4301,10 @@
                 accuracy: Number(merged.accuracy) || null,
                 capturedAt: new Date().toISOString()
             };
-            const accTxt = _hhGpsFix.accuracy ? ' ±' + Math.round(_hhGpsFix.accuracy) + ' m' : '';
-            _hhSetLocUI(
-                '✓ Captured' + accTxt,
-                _hhGpsFix.lat.toFixed(6) + ', ' + _hhGpsFix.lng.toFixed(6),
-                'ok'
-            );
             try { localStorage.setItem('rn_resident_location', JSON.stringify(_hhGpsFix)); } catch(e){}
             return _hhGpsFix;
         } catch (err) {
-            _hhSetLocUI('GPS unavailable', (err && err.message) || 'Using last known location', 'err');
-            // Fall back to any cached home location
+            // Fall back to any cached home / last-known location
             try {
                 const savedHome = JSON.parse(localStorage.getItem('rn_home_location') || 'null')
                                || JSON.parse(localStorage.getItem('rn_resident_location') || 'null');
@@ -3999,20 +4317,21 @@
         }
     }
 
-    document.getElementById('hhLocRefresh').addEventListener('click', function(e) {
-        e.preventDefault();
-        _hhCaptureGps(6000);
-    });
-
     document.getElementById('householdForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const status = getActivePill('householdStatusGroup');
         const remarks = document.getElementById('householdRemarks').value;
         const now = new Date().toISOString();
 
-        // Always refresh GPS at submit time (unless we captured <60s ago)
-        const fresh = _hhGpsFix && (Date.now() - new Date(_hhGpsFix.capturedAt).getTime() < 60000);
-        const fix = fresh ? _hhGpsFix : await _hhCaptureGps(5000);
+        // Prefer the live watch fix (freshest, updated every 2s while the
+        // household screen is open). Only re-sample if the watch never gave
+        // us a fix (e.g. permission denied) or the value is stale.
+        const liveFresh = HH_STATE.bestFix && (Date.now() - (HH_STATE.bestFix.ts || 0) < 45000);
+        const cacheFresh = _hhGpsFix && (Date.now() - new Date(_hhGpsFix.capturedAt).getTime() < 60000);
+        let fix;
+        if (liveFresh) fix = { lat: HH_STATE.bestFix.lat, lng: HH_STATE.bestFix.lng, accuracy: HH_STATE.bestFix.accuracy, capturedAt: new Date(HH_STATE.bestFix.ts).toISOString() };
+        else if (cacheFresh) fix = _hhGpsFix;
+        else fix = await _hhCaptureGps(5000);
 
         const info = {
             status, remarks, updatedAt: now,
@@ -4025,6 +4344,12 @@
 
         // POST household status to server so the admin sees the map pin in real-time
         const currentUser = JSON.parse(sessionStorage.getItem('rn_current_user') || '{}');
+        /* Carry the resident's registered vulnerabilities (PWD, Senior,
+         * Pregnant, Has children, Medical, etc.) into the household
+         * payload so downstream consumers (admin console and responder
+         * dispatch app) can elevate this record above ordinary households
+         * even when the current status is Safe or No Update. */
+        const hhVulns = Array.isArray(currentUser.vulnerabilities) ? currentUser.vulnerabilities.filter(Boolean) : [];
         const hhPayload = {
             id: 'HH-' + (currentUser.id || currentUser.phone || 'MINE'),
             residentName: ((currentUser.firstName || '') + ' ' + (currentUser.lastName || '')).trim() || 'Resident',
@@ -4039,7 +4364,9 @@
             lng: info.lng,
             accuracy: info.accuracy,
             capturedAt: info.capturedAt,
-            source: fix ? 'gps' : 'manual'
+            source: fix ? 'gps' : 'manual',
+            vulnerabilities: hhVulns,
+            vulnerable: hhVulns.length > 0
         };
         fetch(API_BASE + '/api/household', {
             method: 'POST',
@@ -4054,6 +4381,52 @@
             const locNote = fix ? (' · 📍 ' + fix.lat.toFixed(5) + ', ' + fix.lng.toFixed(5)) : '';
             card.querySelector('.desc').textContent = 'Updated: ' + new Date().toLocaleString() + locNote;
         }
+
+        /* Household Assistance tracking — mirrors the SOS flow. When the
+         * resident flags Need Assistance or Missing, we start the same
+         * responder-tracking screen so they see the assigned responder,
+         * their live GPS and ETA. The tracking module polls /api/sync for
+         * an assignment whose `caseId` matches our household id, which the
+         * admin console sets when it dispatches a responder to a household.
+         * If the resident is already tracking a real SOS we don't stomp on
+         * it — instead we surface a small toast so they can cancel the SOS
+         * first. */
+        const isHouseholdHelp = (status === 'Need Assistance' || status === 'Missing');
+        if (isHouseholdHelp) {
+            const currentActiveId = (function(){ try { return (JSON.parse(localStorage.getItem('rn_active_sos') || 'null') || {}).id; } catch(e){ return null; } })();
+            if (currentActiveId && currentActiveId !== hhPayload.id) {
+                toast('⚠ You already have an active request (' + currentActiveId + '). Update status to Safe first to start a new one.');
+                goTo('sos-active');
+                return;
+            }
+            const synth = {
+                id: hhPayload.id,
+                type: 'Household · ' + status,
+                description: remarks || ('Household marked ' + status + ' by resident'),
+                location: hhPayload.purok || '—',
+                latitude: info.lat,
+                longitude: info.lng,
+                accuracy: info.accuracy,
+                capturedAt: info.capturedAt,
+                createdAt: now,
+                household: true,
+                householdStatus: status
+            };
+            try { localStorage.setItem('rn_active_sos', JSON.stringify(synth)); } catch(e){}
+            startSosTracking(synth);
+            toast('🏠 Household assistance requested — dispatch notified');
+            goTo('sos-active');
+            return;
+        }
+
+        // Safe status — clear any tracking that was for this household
+        try {
+            const active = JSON.parse(localStorage.getItem('rn_active_sos') || 'null');
+            if (active && active.household && active.id === hhPayload.id) {
+                if (typeof clearActiveSos === 'function') clearActiveSos();
+                else localStorage.removeItem('rn_active_sos');
+            }
+        } catch(e){}
 
         toast('Household status updated' + (fix ? ' — location sent to Barangay' : ' — no GPS fix, sent without location'));
         goTo('home');
@@ -4410,9 +4783,72 @@
         updateCoordChips();
     }
 
+    /* ---------------------------------------------------------------
+       GEODESIC DISTANCE — Vincenty inverse on the WGS-84 ellipsoid
+       ---------------------------------------------------------------
+       Haversine treats Earth as a perfect sphere (R = 6,371 km) which
+       is off by up to ~0.5 % on real roads — a 1 km readout can be
+       ~5 m wrong, a 10 km readout can be ~50 m wrong. Vincenty
+       iterates against the true ellipsoid (a = 6,378,137.0 m, f = 1 /
+       298.257223563) and converges to sub-millimetre accuracy for
+       anything within ~20,000 km (which comfortably covers the
+       responder / resident scenario in this app).
+
+       We keep haversine as a fallback for the pathological antipodal
+       case where Vincenty's iteration fails to converge.
+       --------------------------------------------------------------- */
+    function vincentyMeters(a, b) {
+        if (!a || !b) return null;
+        if (typeof a.lat !== 'number' || typeof a.lng !== 'number') return null;
+        if (typeof b.lat !== 'number' || typeof b.lng !== 'number') return null;
+        const A  = 6378137.0;                 // WGS-84 semi-major axis (m)
+        const F  = 1 / 298.257223563;         // WGS-84 flattening
+        const B  = A * (1 - F);               // semi-minor axis
+        const toR = Math.PI / 180;
+        const L = Math.abs((b.lng - a.lng) * toR);
+        if (L === 0 && a.lat === b.lat) return 0;
+        const U1 = Math.atan((1 - F) * Math.tan(a.lat * toR));
+        const U2 = Math.atan((1 - F) * Math.tan(b.lat * toR));
+        const sinU1 = Math.sin(U1), cosU1 = Math.cos(U1);
+        const sinU2 = Math.sin(U2), cosU2 = Math.cos(U2);
+        let lambda = L, lambdaP, iterLimit = 200;
+        let sinLambda, cosLambda, sinSigma, cosSigma, sigma,
+            sinAlpha, cosSqAlpha, cos2SigmaM, C;
+        do {
+            sinLambda = Math.sin(lambda);
+            cosLambda = Math.cos(lambda);
+            const t1 = cosU2 * sinLambda;
+            const t2 = cosU1 * sinU2 - sinU1 * cosU2 * cosLambda;
+            sinSigma = Math.sqrt(t1 * t1 + t2 * t2);
+            if (sinSigma === 0) return 0;                     // co-incident
+            cosSigma = sinU1 * sinU2 + cosU1 * cosU2 * cosLambda;
+            sigma = Math.atan2(sinSigma, cosSigma);
+            sinAlpha = cosU1 * cosU2 * sinLambda / sinSigma;
+            cosSqAlpha = 1 - sinAlpha * sinAlpha;
+            cos2SigmaM = cosSqAlpha !== 0
+                ? cosSigma - 2 * sinU1 * sinU2 / cosSqAlpha
+                : 0;                                          // equatorial line
+            C = F / 16 * cosSqAlpha * (4 + F * (4 - 3 * cosSqAlpha));
+            lambdaP = lambda;
+            lambda = L + (1 - C) * F * sinAlpha *
+                (sigma + C * sinSigma *
+                    (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM)));
+        } while (Math.abs(lambda - lambdaP) > 1e-12 && --iterLimit > 0);
+        if (iterLimit === 0) return haversineMeters(a, b);    // fallback
+        const uSq = cosSqAlpha * (A * A - B * B) / (B * B);
+        const k1 = 1 + uSq / 16384 * (4 + uSq * (-3 + 0.25 * uSq));
+        const k2 = uSq / 1024  * (2 + uSq * (-0.375 + 0.140625 * uSq));
+        const dSigma = k2 * sinSigma *
+            (cos2SigmaM + k2 / 4 *
+                (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM)
+                 - k2 / 6 * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma)
+                                    * (-3 + 4 * cos2SigmaM * cos2SigmaM)));
+        return B * k1 * (sigma - dSigma);
+    }
+
     function haversineMeters(a, b) {
         if (!a || !b) return null;
-        const R = 6371000, toR = Math.PI / 180;
+        const R = 6371008.8, toR = Math.PI / 180;   // IUGG mean radius (m)
         const dLat = (b.lat - a.lat) * toR;
         const dLng = (b.lng - a.lng) * toR;
         const s = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -4421,18 +4857,46 @@
         return 2 * R * Math.asin(Math.sqrt(s));
     }
 
+    /* ---------------------------------------------------------------
+       fmtDist — high-precision readout for the "meters away" chip
+       ---------------------------------------------------------------
+       Sub-100 m   → 0.1 m resolution   (e.g. "12.4 m")
+       Sub-1 km    → 1 m resolution     (e.g. "345 m")
+       1–10 km     → 0.001 km           (e.g. "2.345 km")
+       10–100 km   → 0.01 km            (e.g. "45.67 km")
+       >100 km     → 0.1 km             (e.g. "234.5 km")
+       Accepts either a raw number OR { meters, accuracy } so the
+       OSRM-refined route distance and the Vincenty straight-line
+       fallback both flow through the same formatter.
+       --------------------------------------------------------------- */
     function fmtDist(m) {
-        if (m == null || isNaN(m)) return '—';
-        if (m < 1000) return Math.round(m) + ' m';
-        return (m / 1000).toFixed(m < 10000 ? 2 : 1) + ' km';
+        if (m && typeof m === 'object') m = m.meters;
+        if (m == null || isNaN(m) || !isFinite(m)) return '\u2014';
+        m = Math.max(0, Number(m));
+        if (m < 100)     return (Math.round(m * 10) / 10).toFixed(1) + ' m';
+        if (m < 1000)    return Math.round(m) + ' m';
+        if (m < 10000)   return (m / 1000).toFixed(3) + ' km';
+        if (m < 100000)  return (m / 1000).toFixed(2) + ' km';
+        return (m / 1000).toFixed(1) + ' km';
     }
     function fmtETA(m) {
-        if (m == null || isNaN(m)) return '—';
-        // Assume ~30 km/h urban average + 1 min dispatch overhead
-        const min = Math.max(1, Math.round(m / (30000 / 60)) + 1);
-        if (min < 60) return '≈ ' + min + ' min';
+        if (m && typeof m === 'object') m = m.meters;
+        if (m == null || isNaN(m) || !isFinite(m)) return '\u2014';
+        m = Math.max(0, Number(m));
+        // Distance-dependent urban speed profile + 1 min dispatch overhead.
+        // Averages observed at Taculing / PHP urban barangay roads:
+        //   <500 m    → 18 km/h (short hops are walk-heavy, junctions dominate)
+        //   <2 km     → 25 km/h
+        //   <10 km    → 35 km/h (main road)
+        //   ≥ 10 km   → 45 km/h (highway segments appear)
+        const kmh = m < 500 ? 18
+                  : m < 2000 ? 25
+                  : m < 10000 ? 35
+                  : 45;
+        const min = Math.max(1, Math.round((m / 1000) / kmh * 60) + 1);
+        if (min < 60) return '\u2248 ' + min + ' min';
         const h = Math.floor(min / 60), r = min % 60;
-        return '≈ ' + h + 'h ' + r + 'm';
+        return '\u2248 ' + h + 'h ' + r + 'm';
     }
     function agoShort(iso) {
         if (!iso) return '—';
@@ -4477,7 +4941,11 @@
             location: sos.location,
             latitude: sos.latitude,
             longitude: sos.longitude,
-            createdAt: sos.createdAt
+            accuracy: sos.accuracy,
+            capturedAt: sos.capturedAt,
+            createdAt: sos.createdAt,
+            household: !!sos.household,
+            householdStatus: sos.householdStatus || null
         })); } catch(e){}
 
         TRACK = {
@@ -4507,6 +4975,17 @@
         // Populate reference line under header
         const refEl = document.getElementById('sosActiveRef');
         if (refEl) refEl.textContent = 'Case ' + sos.id + ' · ' + (sos.type || 'Emergency') + ' · sent ' + (sos.createdAt ? new Date(sos.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now');
+
+        /* Household mode: same tracking screen, different labels. The
+         * resident used the Household Safety form (Need Assistance /
+         * Missing) instead of the big red SOS button, so we soften the
+         * header wording and hide the Cancel SOS button — the correct
+         * way to clear a household request is to update the status back
+         * to Safe from the Household screen. */
+        const subtitleEl = document.querySelector('#screen-sos-active .sub-title');
+        if (subtitleEl) subtitleEl.textContent = sos.household ? 'Household assistance in progress' : 'Emergency in progress';
+        const cancelBtnEl = document.getElementById('sosCancelBtn');
+        if (cancelBtnEl) cancelBtnEl.style.display = sos.household ? 'none' : '';
 
         // Prime UI to the initial 'new' state
         updateHeader('new');
@@ -4749,8 +5228,8 @@
         const aEl = document.getElementById('trackAgo');
         if (!dEl || !eEl || !aEl) return;
         // Prefer the OSRM road distance / duration if we have a fresh route;
-        // fall back to haversine straight-line if OSRM is unreachable.
-        const straight = (TRACK.residentLoc && TRACK.responderLoc) ? haversineMeters(TRACK.residentLoc, TRACK.responderLoc) : null;
+        // fall back to Vincenty geodesic (WGS-84) if OSRM is unreachable.
+        const straight = (TRACK.residentLoc && TRACK.responderLoc) ? vincentyMeters(TRACK.residentLoc, TRACK.responderLoc) : null;
         const dist = (TRACK.routeDistanceM != null && TRACK.routeCoords) ? TRACK.routeDistanceM : straight;
         const etaSec = (TRACK.routeDurationS != null && TRACK.routeCoords) ? TRACK.routeDurationS : null;
         dEl.textContent = fmtDist(dist);
@@ -4907,6 +5386,7 @@
         const tagEl   = document.getElementById('sosActiveStatus');
         const cardEl  = document.getElementById('sosActiveCard');
         if (!titleEl || !descEl || !tagEl || !cardEl) return;
+        const isHH = !!(TRACK && TRACK.sos && TRACK.sos.household);
         const name = responderName || (TRACK && TRACK.assignment && (TRACK.assignment.responderName || TRACK.assignment.responderId)) || '';
         let tone = 'err';
         if (status === 'arrived' || status === 'responding' || status === 'resolved') tone = 'ok';
@@ -4916,11 +5396,15 @@
         cardEl.className = 'card hero-card status-' + (tone === 'ok' ? 'safe' : tone === 'amber' ? 'warn' : 'err');
 
         if (status === 'new' || !status) {
-            titleEl.textContent = 'SOS received';
-            descEl.textContent  = 'Barangay dispatch has been notified. Waiting for a responder to be assigned…';
+            titleEl.textContent = isHH ? 'Household assistance requested' : 'SOS received';
+            descEl.textContent  = isHH
+                ? 'Barangay dispatch has been notified of your household status. Waiting for a responder to be assigned…'
+                : 'Barangay dispatch has been notified. Waiting for a responder to be assigned…';
         } else if (status === 'assigned' || status === 'acknowledged') {
             titleEl.textContent = (name || 'A responder') + ' is responding';
-            descEl.textContent  = 'Your case has been dispatched. The responder is preparing to move toward your location.';
+            descEl.textContent  = isHH
+                ? 'Your household has been dispatched. The responder is preparing to move toward your location.'
+                : 'Your case has been dispatched. The responder is preparing to move toward your location.';
         } else if (status === 'on-the-way') {
             titleEl.textContent = name + ' is on the way';
             descEl.textContent  = 'Track the responder approaching you on the map. Stay put and keep your phone on.';
@@ -4929,13 +5413,15 @@
             descEl.textContent  = 'Help is at your location. Look for a barangay responder wearing an official ID.';
         } else if (status === 'resolved') {
             titleEl.textContent = 'Case resolved';
-            descEl.textContent  = 'Your SOS has been marked resolved. Thank you for staying safe.';
+            descEl.textContent  = isHH
+                ? 'Your household request has been marked resolved. Update your status to Safe if you need to re-flag.'
+                : 'Your SOS has been marked resolved. Thank you for staying safe.';
         }
 
         const back   = document.getElementById('sosBackHomeBtn');
         const cancel = document.getElementById('sosCancelBtn');
         if (back)   back.style.display   = (status === 'resolved') ? '' : 'none';
-        if (cancel) cancel.style.display = (status === 'resolved') ? 'none' : '';
+        if (cancel) cancel.style.display = (status === 'resolved' || isHH) ? 'none' : '';
     }
 
     function escHtml(s) {

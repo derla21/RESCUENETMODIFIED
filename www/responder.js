@@ -19,6 +19,7 @@ const LS = {
     assignments: 'rn_response_assignments',
     alerts:      'rn_alerts',
     reports:     'rn_reports',
+    households:  'rn_households',
     messages:    'rn_messages',
     notifs:      'rn_resp_notifs',
     me:          'rn_current_responder',
@@ -284,7 +285,46 @@ document.addEventListener('click', e => {
 function allCases() {
     const alerts  = lsGet(LS.alerts, []).map(a => Object.assign({}, a, { kind: 'sos' }));
     const reports = lsGet(LS.reports, []).map(r => Object.assign({}, r, { kind: 'report' }));
-    return alerts.concat(reports);
+    return alerts.concat(reports).concat(activeHouseholds());
+}
+/* Households flagged Need Assistance / Missing by the resident become
+ * map cases so responders see the resident's precise GPS fix. Safe
+ * households are filtered out. Household payload uses `lat`/`lng` — we
+ * remap to `latitude`/`longitude` to align with the alert/report shape
+ * that paintCases and the incident card already understand. */
+function activeHouseholds() {
+    const assignments = lsGet(LS.assignments, []);
+    const claimedIds = new Set(assignments.filter(a => !a.closedAt).map(a => a.caseId));
+    return lsGet(LS.households, [])
+        .filter(h => h && h.id
+                 && (h.status === 'Need Assistance' || h.status === 'Missing')
+                 && Number.isFinite(Number(h.lat))
+                 && Number.isFinite(Number(h.lng)))
+        .map(h => {
+            const vulns = Array.isArray(h.vulnerabilities) ? h.vulnerabilities.filter(Boolean) : [];
+            return {
+                id: h.id,
+                kind: 'household',
+                householdId: h.id,
+                type: (vulns.length ? '⚠ ' : '') + 'Household · ' + h.status,
+                householdStatus: h.status,
+                latitude: Number(h.lat),
+                longitude: Number(h.lng),
+                accuracy: (Number.isFinite(Number(h.accuracy)) ? Number(h.accuracy) : null),
+                createdAt: h.updatedAt || h.capturedAt || new Date().toISOString(),
+                updatedAt: h.updatedAt,
+                reporter: { name: h.residentName || 'Resident', phone: h.phone || '', address: h.purok || '', vulnerabilities: vulns },
+                reporterName: h.residentName || 'Resident',
+                description: h.remarks || ('Household marked ' + h.status),
+                purok: h.purok || '',
+                phone: h.phone || '',
+                vulnerabilities: vulns,
+                vulnerable: vulns.length > 0 || h.vulnerable === true,
+                assignedResponderId: h.assignedResponderId || null,
+                assignedResponderName: h.assignedResponderName || null,
+                unassigned: !claimedIds.has(h.id)
+            };
+        });
 }
 function myAssignments() {
     const me = getMe(); if (!me) return [];
@@ -293,14 +333,47 @@ function myAssignments() {
 }
 function myCases() {
     const cases = allCases();
-    return myAssignments().map(a => {
+    const joined = myAssignments().map(a => {
         const c = cases.find(x => x.id === a.caseId) || { id: a.caseId, kind: 'sos', type: 'Emergency' };
         return Object.assign({}, c, { assign: a });
-    }).sort((x, y) => new Date(y.assign.assignedAt || y.createdAt) - new Date(x.assign.assignedAt || x.createdAt));
+    });
+    /* Vulnerable-first within my active responses so the Home screen and
+     * Cases list always show the highest-priority case on top, even when
+     * the responder received a newer ordinary assignment after it. */
+    joined.sort((x, y) => {
+        const vx = isVulnCase(x) ? 0 : 1;
+        const vy = isVulnCase(y) ? 0 : 1;
+        if (vx !== vy) return vx - vy;
+        return new Date((y.assign && y.assign.assignedAt) || y.createdAt || 0)
+             - new Date((x.assign && x.assign.assignedAt) || x.createdAt || 0);
+    });
+    return joined;
 }
 function unassignedOpen() {
-    const claimed = new Set(lsGet(LS.assignments, []).map(a => a.caseId));
-    return lsGet(LS.alerts, []).filter(s => !s.resolvedAt && !claimed.has(s.id));
+    const claimed = new Set(lsGet(LS.assignments, []).filter(a => !a.closedAt).map(a => a.caseId));
+    const openSOS = lsGet(LS.alerts, []).filter(s => !s.resolvedAt && !claimed.has(s.id));
+    const openHH  = activeHouseholds().filter(h => !claimed.has(h.id));
+    /* Vulnerable-first ordering across the barangay queue so a PWD /
+     * senior / pregnant / household-with-children always surfaces before
+     * general alerts, even if a newer ordinary case arrived later. */
+    return openSOS.concat(openHH).sort((a, b) => {
+        const va = isVulnCase(a) ? 0 : 1;
+        const vb = isVulnCase(b) ? 0 : 1;
+        if (va !== vb) return va - vb;
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+}
+
+/* Shared vulnerable check used by the queue sorts and by pin/card
+ * rendering. Reads either the embedded reporter.vulnerabilities list
+ * (SOS alerts / reports) or the household's own vulnerabilities array. */
+function isVulnCase(c) {
+    if (!c) return false;
+    if (c.vulnerable === true) return true;
+    if (Array.isArray(c.vulnerabilities) && c.vulnerabilities.length) return true;
+    const rep = c.reporter;
+    if (rep && Array.isArray(rep.vulnerabilities) && rep.vulnerabilities.length) return true;
+    return false;
 }
 
 /* ---------- availability ---------- */
@@ -341,7 +414,7 @@ function renderHome() {
     $('#homeActive').innerHTML = nothing + fresh.concat(active).slice(0, 4).map(c => incCard(c)).join('');
     const pool = unassignedOpen().slice(0, 3);
     $('#homeAlerts').innerHTML = pool.length
-        ? pool.map(c => incCard(Object.assign({}, c, { kind: 'sos', assign: null }))).join('')
+        ? pool.map(c => incCard(Object.assign({}, c, { kind: c.kind || 'sos', assign: null }))).join('')
         : '<div class="empty">No open SOS in the barangay right now.</div>';
 }
 
@@ -411,7 +484,7 @@ function renderCases() {
         const pool = unassignedOpen();
         if (pool.length) {
             html += '<div class="sec-head" style="margin:18px 0 10px;"><h2>Barangay queue</h2><span class="hint">Not yet assigned — you can self-claim</span></div>' +
-                    pool.map(c => incCard(Object.assign({}, c, { kind: 'sos', assign: null }))).join('');
+                    pool.map(c => incCard(Object.assign({}, c, { kind: c.kind || 'sos', assign: null }))).join('');
         } else if (!list.length) {
             html = '<div class="empty"><strong>No new assignments</strong>Wait for the Barangay Official to dispatch a case to you.</div>';
         }
@@ -884,15 +957,27 @@ function paintCases() {
     MAP.accLayer = [];
     MAP.accByCase = {};
     const spots = [];
-    myCases().concat(unassignedOpen().map(a => Object.assign({}, a, { kind: 'sos', assign: null }))).forEach(c => {
+    myCases().concat(unassignedOpen().map(a => Object.assign({}, a, { kind: a.kind || 'sos', assign: null }))).forEach(c => {
         if (!c.latitude || !c.longitude) return;
         const crit = /medical|fire|danger|flood|collapse/i.test(c.type || '');
-        const resolved = c.assign && c.assign.status === 'resolved';
+        const resolved = (c.assign && c.assign.status === 'resolved') || !!c.resolvedAt || !!c.closedAt;
+        /* Once an incident is resolved its pin is removed from the dispatch
+         * map entirely (admin + responder). It still shows in the Cases /
+         * history list, just not on the live map. */
+        if (resolved) return;
         const unassigned = !c.assign;
-        const tone = resolved ? 'green' : unassigned ? 'red' : (crit ? 'red' : 'orange');
-        const colorHex = resolved ? '#16a34a' : unassigned ? '#dc2626' : (crit ? '#dc2626' : '#ff6500');
+        const vuln = isVulnCase(c);
+        const vulns = (c.vulnerabilities && c.vulnerabilities.length ? c.vulnerabilities
+                    : (c.reporter && c.reporter.vulnerabilities) ? c.reporter.vulnerabilities : []);
+        /* Vulnerable-person pin: red ring on the map, elevated zIndex, and
+         * a leading ⚠ badge in the readout label so it is obvious at a
+         * glance, even when the case is currently Safe / informational. */
+        const tone = resolved ? 'green' : (vuln || unassigned || crit) ? 'red' : 'orange';
+        const colorHex = resolved ? '#16a34a' : (vuln || unassigned || crit) ? '#dc2626' : '#ff6500';
         const acc = (typeof c.accuracy === 'number' && isFinite(c.accuracy)) ? c.accuracy : null;
         const repName = (c.reporter || {}).name || c.reporterName || c.id;
+        const baseLabel = unassigned ? (c.kind === 'household' ? 'HH' : 'SOS') : (resolved ? 'Done' : (c.type || 'SOS'));
+        const finalLabel = (vuln ? '⚠ ' : '') + baseLabel;
 
         // Accuracy circle first, so the pin sits visually on top
         if (acc != null && acc > 0 && acc < 5000) {
@@ -911,18 +996,20 @@ function paintCases() {
         }
 
         const mk = L.marker([c.latitude, c.longitude], {
-            icon: preciseCaseIcon({ tone, accuracy: acc, label: unassigned ? 'SOS' : (resolved ? 'Done' : (c.type || 'SOS')) }),
-            zIndexOffset: unassigned ? 900 : (resolved ? 200 : 700),
+            icon: preciseCaseIcon({ tone, accuracy: acc, label: finalLabel }),
+            zIndexOffset: vuln ? 1000 : (unassigned ? 900 : (resolved ? 200 : 700)),
             riseOnHover: true,
             title: repName
         }).addTo(MAP.map);
         mk.bindPopup(
-            '<b>' + esc(c.type || 'Incident') + (unassigned ? ' · Unassigned' : '') + '</b><br>'
-            + esc(repName) +
+            '<b>' + (vuln ? '⚠ ' : '') + esc(c.type || 'Incident') + (unassigned ? ' · Unassigned' : '') + '</b><br>'
+            + esc(repName)
+            + (c.purok ? '<br><span style="color:#6b83a0">' + esc(c.purok) + '</span>' : '') +
+            (vulns.length ? '<br><span style="color:#ff6500;font-weight:600;">⚠ Vulnerable · ' + vulns.map(esc).join(', ') + '</span>' : '') +
             '<br><span style="color:#6b83a0">' + esc(c.assign ? FLOW_LABEL[c.assign.status] : 'Open in queue') + ' · ' + ago(c.createdAt) + '</span>'
             + (acc != null ? '<br><span style="color:#6b83a0">📍 Precise fix ' + Math.round(acc) + ' m</span>' : '')
             + (c.assign && c.assign.status !== 'resolved' ? '<br><button class="btn sm amber" style="margin-top:8px;" onclick="document.dispatchEvent(new CustomEvent(\'rnfocus\', {detail:' + JSON.stringify(c.id).replace(/"/g, '\\"') + '}))">Route</button>' : '')
-            + (unassigned ? '<br><button class="btn sm amber" style="margin-top:8px;" data-claim="' + esc(c.id) + '">Claim this SOS</button>' : '')
+            + (unassigned ? '<br><button class="btn sm amber" style="margin-top:8px;" data-claim="' + esc(c.id) + '">Claim ' + (c.kind === 'household' ? 'Household' : 'this SOS') + '</button>' : '')
         );
         // Tap a marker to focus it — the reporter card below the map updates too
         (function (cid) { mk.on('click', function () { MAP.focus = cid; refreshReporterCard(); }); })(c.id);
@@ -1340,6 +1427,24 @@ async function pullRemote() {
             if (changed) { lsSet(LS.assignments, local); checkNewAssignments(); refreshAll(); }
         }
     } catch (e) {}
+    /* Pull household safety statuses so the resident's Need Assistance /
+     * Missing flags (with precise GPS) surface on the responder map even
+     * when the admin hasn't dispatched a specific responder yet. */
+    try {
+        const hr = await fetch(API_BASE + '/api/households');
+        if (hr.ok) {
+            const remote = await hr.json();
+            const local = lsGet(LS.households, []);
+            let changed = false;
+            (Array.isArray(remote) ? remote : []).forEach(h => {
+                if (!h || !h.id) return;
+                const idx = local.findIndex(x => x.id === h.id);
+                if (idx < 0) { local.unshift(h); changed = true; }
+                else if (new Date(h.updatedAt || 0) > new Date(local[idx].updatedAt || 0)) { local[idx] = { ...local[idx], ...h }; changed = true; }
+            });
+            if (changed) { lsSet(LS.households, local); refreshAll(); if (typeof currentScreen !== 'undefined' && currentScreen === 'map') paintCases(); }
+        }
+    } catch (e) {}
 }
 
 /* ---------- realtime listeners ---------- */
@@ -1394,6 +1499,28 @@ window.addEventListener('storage', () => { checkNewAssignments(); checkIncomingM
         } catch(e){}
     });
 
+    /* Real-time household safety update — the resident just flipped their
+     * Household status. If it is Need Assistance / Missing with a fresh
+     * GPS fix we push a notification and repaint the map so the pin for
+     * that residence appears immediately. */
+    es.addEventListener('household_update', function(ev) {
+        try {
+            const hh = JSON.parse(ev.data);
+            if (!hh || !hh.id) return;
+            const arr = lsGet(LS.households, []);
+            const idx = arr.findIndex(x => x.id === hh.id);
+            if (idx >= 0) arr[idx] = { ...arr[idx], ...hh }; else arr.unshift(hh);
+            lsSet(LS.households, arr);
+            const isActive = (hh.status === 'Need Assistance' || hh.status === 'Missing')
+                          && Number.isFinite(Number(hh.lat)) && Number.isFinite(Number(hh.lng));
+            if (isActive && idx < 0) {
+                pushNotif('🏠 Household flag', (hh.residentName || 'Resident') + ' — ' + hh.status);
+            }
+            refreshAll();
+            if (currentScreen === 'map') paintCases();
+        } catch(e){}
+    });
+
     es.onerror = function() {
         es.close();
         setTimeout(connectResponderSSE, 4000);
@@ -1432,6 +1559,19 @@ if (window.RNRealtime) {
                 const idx = arr.findIndex(a => a.id === updated.id);
                 if (idx >= 0) { arr[idx] = { ...arr[idx], ...updated }; lsSet(LS.alerts, arr); }
                 refreshAll();
+            } else if (evt.type === 'household_update') {
+                const hh = evt.data;
+                if (hh && hh.id) {
+                    const arr = lsGet(LS.households, []);
+                    const idx = arr.findIndex(x => x.id === hh.id);
+                    if (idx >= 0) arr[idx] = { ...arr[idx], ...hh }; else arr.unshift(hh);
+                    lsSet(LS.households, arr);
+                    const isActive = (hh.status === 'Need Assistance' || hh.status === 'Missing')
+                                  && Number.isFinite(Number(hh.lat)) && Number.isFinite(Number(hh.lng));
+                    if (isActive && idx < 0) pushNotif('🏠 Household flag', (hh.residentName || 'Resident') + ' — ' + hh.status);
+                    refreshAll();
+                    if (currentScreen === 'map') paintCases();
+                }
             }
         } catch(e){}
     });

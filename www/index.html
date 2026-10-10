@@ -113,6 +113,55 @@
             display: none;
         }
 
+        /* AWAITING-APPROVAL MODE -------------------------------------------
+         * Right after facial.html completes we drop the resident on
+         * index.html?pending=1. In that state the login form + social
+         * buttons + register link are visually irrelevant (they cannot
+         * sign in yet), so we hide them and let the pendingCard own the
+         * whole panel. Once the poll flips to `approved` we remove the
+         * class and the normal login UI fades back in. -------------------*/
+        .login-section.awaiting-mode .welcome,
+        .login-section.awaiting-mode #loginForm,
+        .login-section.awaiting-mode .divider,
+        .login-section.awaiting-mode .social-login,
+        .login-section.awaiting-mode .register,
+        .login-section.awaiting-mode .security {
+            display: none !important;
+        }
+
+        .login-section.awaiting-mode #pendingCard {
+            margin-top: 24px;
+            padding: 32px 26px;
+            text-align: center;
+        }
+
+        .login-section.awaiting-mode #pendingIcon {
+            width: 62px !important;
+            height: 62px !important;
+            font-size: 32px !important;
+            margin: 0 auto 12px;
+        }
+
+        .login-section.awaiting-mode #pendingTitle {
+            font-size: 20px !important;
+        }
+
+        .login-section.awaiting-mode #pendingSub {
+            font-size: 13.5px !important;
+            margin-top: 6px !important;
+        }
+
+        .login-section.awaiting-mode #pendingBody {
+            margin-top: 16px !important;
+            font-size: 13px !important;
+        }
+
+        .login-section:not(.awaiting-mode) #pendingCard {
+            /* When the login form is visible again, the card sits inline
+             * as a status banner (existing behaviour). */
+            text-align: left;
+        }
+
         .welcome {
             margin-bottom: 22px;
         }
@@ -815,6 +864,8 @@
             dot.style.background = '#16a34a';
             dot.parentElement.firstChild && (dot.parentElement.childNodes[1].nodeValue = ' Approved');
             unlockLogin();
+            /* Reveal the normal login UI again — the wait is over. */
+            document.querySelector('.login-section') && document.querySelector('.login-section').classList.remove('awaiting-mode');
             approvalResolved = true;
             if (approvalPollTimer) { clearInterval(approvalPollTimer); approvalPollTimer = null; }
         } else if (state === 'rejected') {
@@ -826,6 +877,7 @@
             sub.textContent   = 'Please visit the barangay hall for follow-up.';
             body.innerHTML   = 'A barangay official rejected this registration. Contact the barangay hall or re-register with corrected documents.';
             dot.style.background = '#dc2626';
+            document.querySelector('.login-section') && document.querySelector('.login-section').classList.remove('awaiting-mode');
             approvalResolved = true;
             if (approvalPollTimer) { clearInterval(approvalPollTimer); approvalPollTimer = null; }
         } else if (state === 'missing') {
@@ -833,8 +885,9 @@
             sub.textContent   = 'Locating your registration…';
             body.innerHTML    = 'We could not find your record yet. This page will retry automatically.';
         } else { /* pending */
-            title.textContent = 'Awaiting approval';
-            sub.textContent   = 'A barangay official will review your registration.';
+            title.textContent = 'Waiting for Admin Approval';
+            sub.textContent   = 'A barangay official is reviewing your registration.';
+            body.innerHTML    = 'We saved your details. You\u2019ll be notified by <b>email</b> and <b>SMS</b> as soon as your account is approved.<br><span style="color:var(--muted); font-size:12px;">This page updates automatically \u2014 you can keep it open in the background.</span>';
         }
     }
 
@@ -846,10 +899,14 @@
         const saved = readPendingContact();
         const savedEmail = saved.email;
         const savedPhone = saved.phone;
+        const loginSection = document.querySelector('.login-section');
 
         if (pending) {
             const box = document.getElementById('welcomeBox');
             if (box) box.innerHTML = '<h1>Thank you for registering</h1><p>A barangay official will review your account. You’ll be notified once approved.</p>';
+            /* Enter the full-screen waiting view — hide the login form and
+             * social buttons until the poll flips to `approved`. */
+            if (loginSection) loginSection.classList.add('awaiting-mode');
             renderPendingCard('pending', { email: savedEmail, phone: savedPhone });
             const emailInput = document.getElementById('email');
             if (emailInput && (savedEmail || savedPhone)) emailInput.value = savedEmail || savedPhone;
@@ -857,6 +914,7 @@
         } else if (hasPointer) {
             // Reopened browser while still waiting — bring the card back so the
             // resident sees the approval banner without needing to sign in first.
+            if (loginSection) loginSection.classList.add('awaiting-mode');
             renderPendingCard('pending', { email: ptr.email, phone: ptr.phone });
             const emailInput = document.getElementById('email');
             if (emailInput && !emailInput.value) emailInput.value = ptr.email || ptr.phone;
@@ -1000,6 +1058,10 @@
 
         // Graceful degradation: if the server is unreachable but the local record is
         // already flagged approved, allow login. If server says pending/rejected, block.
+        // Strict by default now — the reported "auto approval" bug happened because a
+        // null / unknown status fell through this ladder. Any state other than an
+        // explicit 'approved' now ends in a block, unless we're offline AND the local
+        // record was previously marked 'approved' (legacy installs keep working).
         if (status === 'approved') {
             // fall through to sign in
         } else if (status === 'rejected') {
@@ -1011,11 +1073,14 @@
             try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
             return;
         } else {
-            // status unknown (never recorded) AND server unreachable → be permissive for
-            // existing installs that predate the approval gate, but block brand-new ones.
-            if (!serverReachable) {
-                // Allow through; the local record exists which means they registered on this device
-                console.warn('[Login] approval server unreachable; allowing local record');
+            /* status === null (server had no record AND local had no status field,
+             * OR server said `found: false`). This is a brand-new / unverified
+             * account — never auto-admit. Only if the server is unreachable do
+             * we allow through with a soft warning, so offline APK installs
+             * that previously logged in can still open the app. */
+            if (!serverReachable && resident && resident.status === 'approved') {
+                console.warn('[Login] server unreachable; local record was previously approved — allowing offline sign-in');
+                /* fall through */
             } else {
                 renderPendingCard('pending', { email: resident.email, phone: resident.phone });
                 try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}

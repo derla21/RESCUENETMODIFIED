@@ -1193,6 +1193,173 @@ table.tbl {
 .badge-list.tight { gap: 3px; margin-top: 3px; }
 .row-actions { display: flex; gap: var(--sp-2); }
 
+/* ---------- SOS dispatch table — column widths + breathing room ----------
+ * The generic .tbl rule makes tables horizontally scrollable with
+ * nowrap cells and display:block on the outer <table> so thead/tbody
+ * render as separate display:table elements. That works for short
+ * tables but the SOS request table has seven varied columns and the
+ * mobile block rule causes headers to drift out of alignment with
+ * body cells. Here we (a) put the scroll on the wrapper panel instead,
+ * (b) restore native display on the <table>/<thead>/<tbody>, (c) use
+ * table-layout:fixed + a <colgroup> so every column has one locked
+ * width that headers and rows share. Column widths (percent) sum to
+ * 100 so the table always fills the panel cleanly. */
+#sosTable { overflow-x: auto; }
+#sosTable .tbl.sos-tbl {
+    display: table;
+    width: 100%;
+    min-width: 980px;
+    table-layout: fixed;
+    white-space: normal;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+#sosTable .tbl.sos-tbl > thead { display: table-header-group; width: auto; }
+#sosTable .tbl.sos-tbl > tbody { display: table-row-group; width: auto; }
+
+/* Locked column widths — one value shared by every <th> and <td>
+ * in that column via the <colgroup>. */
+#sosTable .tbl.sos-tbl col.c-emergency { width: 15%; }
+#sosTable .tbl.sos-tbl col.c-resident  { width: 22%; }
+#sosTable .tbl.sos-tbl col.c-loc       { width: 13%; }
+#sosTable .tbl.sos-tbl col.c-desc      { width: 21%; }
+#sosTable .tbl.sos-tbl col.c-status    { width: 8%; }
+#sosTable .tbl.sos-tbl col.c-assigned  { width: 11%; }
+#sosTable .tbl.sos-tbl col.c-actions   { width: 10%; }
+
+#sosTable .tbl.sos-tbl thead th {
+    white-space: nowrap;
+    vertical-align: middle;
+    padding: 10px var(--sp-4);
+    letter-spacing: 0.02em;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+#sosTable .tbl.sos-tbl tbody td {
+    vertical-align: middle;
+    padding: 14px var(--sp-4);
+    line-height: 1.45;
+    border-bottom: 1px solid var(--line);
+    overflow-wrap: anywhere;
+}
+#sosTable .tbl.sos-tbl tbody tr:last-child td { border-bottom: none; }
+
+/* Consistent per-column alignment: coordinates and status badge sit
+ * centered so the vertical column edge lines up between rows. */
+#sosTable .tbl.sos-tbl .sos-loc    { text-align: left; }
+#sosTable .tbl.sos-tbl .sos-status { text-align: center; }
+
+#sosTable .tbl.sos-tbl .sos-desc { color: var(--navy); }
+#sosTable .tbl.sos-tbl .sos-desc .muted { color: var(--muted); font-style: italic; }
+
+/* Name-cell needs a flexible inner column so long resident names /
+ * phone lines don't shove the trailing verified chip or the vuln
+ * badge-list out of the cell. */
+#sosTable .tbl.sos-tbl .name-cell { align-items: flex-start; gap: var(--sp-2); }
+#sosTable .tbl.sos-tbl .name-cell > div:last-child { flex: 1; min-width: 0; }
+#sosTable .tbl.sos-tbl .name-cell .n {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    line-height: 1.35;
+}
+#sosTable .tbl.sos-tbl .name-cell .e { margin-top: 4px; }
+#sosTable .tbl.sos-tbl .badge-list.tight { margin-top: 6px; gap: 4px; }
+#sosTable .tbl.sos-tbl .badge.trailing { margin-left: 0; }
+
+/* Precise-location stacked coords need tighter line spacing */
+#sosTable .tbl.sos-tbl .sos-loc > div:first-child { line-height: 1.35; }
+
+/* Actions column: stack vertically so Profile / Assign / Resolve share
+ * the same left edge in every row and never overlap the neighbor. */
+#sosTable .tbl.sos-tbl .rn-actions.wrap {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+#sosTable .tbl.sos-tbl .rn-actions.wrap select,
+#sosTable .tbl.sos-tbl .rn-actions.wrap button {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* ---------- Incident Reports table — same fixed-column treatment ----
+ * Mirrors the SOS dispatch table so the reports list on the Incidents
+ * screen has identical alignment rules: real <table> rendering, a
+ * <colgroup> that locks every column to one percentage width shared
+ * between headers and body, sticky headers, roomy cell padding and
+ * vertically stacked action buttons. Widths sum to 100%. */
+#incidentsTable { overflow-x: auto; }
+#incidentsTable .tbl.rep-tbl {
+    display: table;
+    width: 100%;
+    min-width: 900px;
+    table-layout: fixed;
+    white-space: normal;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+#incidentsTable .tbl.rep-tbl > thead { display: table-header-group; width: auto; }
+#incidentsTable .tbl.rep-tbl > tbody { display: table-row-group; width: auto; }
+
+#incidentsTable .tbl.rep-tbl col.c-incident { width: 20%; }
+#incidentsTable .tbl.rep-tbl col.c-rloc     { width: 18%; }
+#incidentsTable .tbl.rep-tbl col.c-rdate    { width: 15%; }
+#incidentsTable .tbl.rep-tbl col.c-rdesc    { width: 27%; }
+#incidentsTable .tbl.rep-tbl col.c-rstatus  { width: 10%; }
+#incidentsTable .tbl.rep-tbl col.c-ractions { width: 10%; }
+
+#incidentsTable .tbl.rep-tbl thead th {
+    white-space: nowrap;
+    vertical-align: middle;
+    padding: 10px var(--sp-4);
+    letter-spacing: 0.02em;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+#incidentsTable .tbl.rep-tbl tbody td {
+    vertical-align: middle;
+    padding: 14px var(--sp-4);
+    line-height: 1.45;
+    border-bottom: 1px solid var(--line);
+    overflow-wrap: anywhere;
+}
+#incidentsTable .tbl.rep-tbl tbody tr:last-child td { border-bottom: none; }
+
+#incidentsTable .tbl.rep-tbl .rep-status { text-align: center; }
+#incidentsTable .tbl.rep-tbl .rep-date   { font-variant-numeric: tabular-nums; color: var(--navy); }
+#incidentsTable .tbl.rep-tbl .rep-desc   { color: var(--navy); }
+#incidentsTable .tbl.rep-tbl .rep-desc .muted { color: var(--muted); font-style: italic; }
+
+#incidentsTable .tbl.rep-tbl .name-cell { align-items: flex-start; gap: var(--sp-2); }
+#incidentsTable .tbl.rep-tbl .name-cell > div:last-child { flex: 1; min-width: 0; }
+#incidentsTable .tbl.rep-tbl .name-cell .n {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    line-height: 1.35;
+}
+#incidentsTable .tbl.rep-tbl .name-cell .e { margin-top: 4px; }
+#incidentsTable .tbl.rep-tbl .badge.trailing { margin-left: 0; }
+
+#incidentsTable .tbl.rep-tbl .rn-actions.wrap {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+#incidentsTable .tbl.rep-tbl .rn-actions.wrap button {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 /* ---------- LISTS ---------- */
 .row-list { display: flex; flex-direction: column; gap: var(--sp-2); }
 .row-item {
@@ -1864,6 +2031,47 @@ table.tbl > thead, table.tbl > tbody { display: table; width: 100%; }
 
         <!-- ============ SCREEN: RESOURCES ============ -->
         <section class="screen" data-screen="resources">
+            <div class="sec-title"><h2>Compose Resource</h2>
+                <span class="hint">Publish a new guide, hotline, checklist or procedure to resident devices</span>
+            </div>
+            <div class="panel">
+                <div class="form-row">
+                    <div><label>Title</label><input id="resTitle" placeholder="e.g. Earthquake Drop-Cover-Hold Guide" /></div>
+                    <div><label>Category</label>
+                        <select id="resCategory">
+                            <option>Guide</option>
+                            <option>Procedure</option>
+                            <option>Checklist</option>
+                            <option>Hotline</option>
+                            <option>Reminder</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row single">
+                    <div><label>Description / Summary</label>
+                        <textarea id="resBody" placeholder="Short description residents will see before opening the resource…"></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div><label>Link or File Reference (optional)</label>
+                        <input id="resLink" placeholder="https://… or filename.pdf" />
+                    </div>
+                    <div><label>Availability</label>
+                        <select id="resOffline">
+                            <option value="1">Offline-ready (bundled in app)</option>
+                            <option value="0">Online only</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="rn-actions">
+                    <button class="btn primary" id="resPublish">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Publish Resource
+                    </button>
+                    <button class="btn ghost" id="resClear">Clear</button>
+                </div>
+            </div>
+
             <div class="sec-title"><h2>Emergency Resources</h2>
                 <span class="hint">Guides pushed to resident app (offline-capable)</span>
             </div>
@@ -2167,11 +2375,56 @@ const STATUS_COLOR = {
 };
 
 function classifyHousehold(h) {
-    if (!h.status || h.status === 'No Update') return 'unknown';
+    /* Vulnerable-person priority. When the household record itself (or
+     * the linked resident profile) carries registered vulnerabilities,
+     * we elevate the tone to `vulnerable` for every non-danger status.
+     * Missing remains `danger` because that is the highest alert. Need
+     * Assistance from a vulnerable resident reads as `vulnerable` so it
+     * stands out from ordinary assistance requests on the map. */
+    const vuln = householdHasVuln(h);
+    if (!h.status || h.status === 'No Update') return vuln ? 'vulnerable' : 'unknown';
     if (h.status === 'Missing') return 'danger';
-    if (h.status === 'Need Assistance') return 'assist';
-    if (h.status === 'Safe') return 'safe';
-    return 'unknown';
+    if (h.status === 'Need Assistance') return vuln ? 'vulnerable' : 'assist';
+    if (h.status === 'Safe') return vuln ? 'vulnerable' : 'safe';
+    return vuln ? 'vulnerable' : 'unknown';
+}
+
+/* Reads the vulnerability flag off the household record directly, and
+ * falls back to looking up the linked resident profile by id / email /
+ * phone so a resident who registered as vulnerable still gets priority
+ * even if their household was created before this field existed. */
+function householdHasVuln(h) {
+    if (!h) return false;
+    if (h.vulnerable === true) return true;
+    if (Array.isArray(h.vulnerabilities) && h.vulnerabilities.length) return true;
+    const residents = lsGet(STORE.residents, []);
+    const key = String(h.residentId || h.email || h.phone || h.residentName || '').toLowerCase();
+    if (!key) return false;
+    const r = residents.find(x =>
+        (x.id && String(x.id).toLowerCase() === key) ||
+        ((x.email || '').toLowerCase() === key) ||
+        ((x.phone || '').toLowerCase() === key) ||
+        (((x.firstName || '') + ' ' + (x.lastName || '')).toLowerCase() === key)
+    );
+    return !!(r && Array.isArray(r.vulnerabilities) && r.vulnerabilities.length);
+}
+
+/* Returns the actual list of vulnerability labels for a household so we
+ * can render them in popups, tables and dispatch queues. Prefers the
+ * household payload; falls back to the linked resident profile. */
+function householdVulnList(h) {
+    if (!h) return [];
+    if (Array.isArray(h.vulnerabilities) && h.vulnerabilities.length) return h.vulnerabilities.filter(Boolean);
+    const residents = lsGet(STORE.residents, []);
+    const key = String(h.residentId || h.email || h.phone || h.residentName || '').toLowerCase();
+    if (!key) return [];
+    const r = residents.find(x =>
+        (x.id && String(x.id).toLowerCase() === key) ||
+        ((x.email || '').toLowerCase() === key) ||
+        ((x.phone || '').toLowerCase() === key) ||
+        (((x.firstName || '') + ' ' + (x.lastName || '')).toLowerCase() === key)
+    );
+    return (r && Array.isArray(r.vulnerabilities)) ? r.vulnerabilities.filter(Boolean) : [];
 }
 
 /* =====================================================
@@ -2303,10 +2556,15 @@ function collectMapPoints() {
     const households = lsGet(STORE.households, []);
     households.forEach(h => {
         const tone = classifyHousehold(h);
+        const vulns = householdVulnList(h);
+        const vulnLine = vulns.length
+            ? '<br><span style="color:#ff6500;font-weight:600;">⚠ Vulnerable · ' + vulns.map(esc).join(', ') + '</span>'
+            : '';
         pts.push({
             kind: 'household', id: h.id, lat: h.lat, lng: h.lng, tone,
-            title: h.residentName,
-            body: `${h.purok || ''} · Status: <b>${h.status}</b>${h.remarks ? '<br>' + h.remarks : ''}<br><span class="pc">Updated ${ago(h.updatedAt)}</span>`
+            vulnerable: vulns.length > 0,
+            title: (vulns.length ? '⚠ ' : '') + h.residentName,
+            body: `${h.purok || ''} · Status: <b>${h.status}</b>${vulnLine}${h.remarks ? '<br>' + h.remarks : ''}<br><span class="pc">Updated ${ago(h.updatedAt)}</span>`
         });
     });
     lsGet(STORE.alerts, []).filter(a => !a.resolvedAt && a.latitude).forEach(s => {
@@ -2909,9 +3167,30 @@ function renderHouseholds() {
     const assignments = lsGet(STORE.respond, []);
     const responders = lsGet(STORE.responders, []);
     const me = ADMIN.lastPos;
-    const rows = list.map(h => {
+    /* Vulnerable-person priority across all households, even if they are
+     * currently Safe. Order: vulnerable + Missing → vulnerable + Need
+     * Assistance → other Missing → other Need Assistance → vulnerable +
+     * Safe/No Update → everything else. This guarantees the admin queue
+     * always surfaces vulnerable residents at the top. */
+    const hhPriority = h => {
+        const v = householdHasVuln(h);
+        if (v && h.status === 'Missing') return 0;
+        if (v && h.status === 'Need Assistance') return 1;
+        if (h.status === 'Missing') return 2;
+        if (h.status === 'Need Assistance') return 3;
+        if (v && h.status === 'Safe') return 4;
+        if (v) return 5;
+        return 6;
+    };
+    const sorted = [...list].sort((a, b) => {
+        const pa = hhPriority(a), pb = hhPriority(b);
+        if (pa !== pb) return pa - pb;
+        return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+    });
+    const rows = sorted.map(h => {
         const tone = classifyHousehold(h);
-        const badge = tone === 'danger' ? 'err' : tone === 'assist' ? 'warn' : tone === 'safe' ? 'ok' : tone === 'vulnerable' ? 'info' : 'gray';
+        const badge = tone === 'danger' ? 'err' : tone === 'assist' ? 'warn' : tone === 'safe' ? 'ok' : tone === 'vulnerable' ? 'chip-orange' : 'gray';
+        const hhVulns = householdVulnList(h);
         const openAsgn = assignments.find(a => a.householdId === h.id && !a.closedAt);
         const resp = openAsgn ? responders.find(r => r.id === openAsgn.responderId) : null;
         const needsHelp = (h.status === 'Need Assistance' || h.status === 'Missing');
@@ -2944,7 +3223,7 @@ function renderHouseholds() {
             + '<button class="btn ghost sm" data-contact-household="' + h.id + '">Contact</button>'
             + '</div>';
         return '<tr>'
-            + '<td><div class="name-cell"><div class="avatar">' + initials(h.residentName || '?') + '</div><div><div class="n">' + (h.residentName || '—') + '</div><div class="e">' + (h.purok || '') + (h.phone ? ' · ' + h.phone : '') + '</div></div></div></td>'
+            + '<td><div class="name-cell"><div class="avatar">' + initials(h.residentName || '?') + '</div><div><div class="n">' + (h.residentName || '—') + (hhVulns.length ? ' <span class="badge chip-orange trailing">⚠ Vulnerable</span>' : '') + '</div><div class="e">' + (h.purok || '') + (h.phone ? ' · ' + h.phone : '') + '</div>' + (hhVulns.length ? '<div class="badge-list tight">' + hhVulns.map(v=>'<span class="badge chip-orange">' + v + '</span>').join('') + '</div>' : '') + '</div></div></td>'
             + '<td><span class="badge ' + badge + '"><span class="dot"></span>' + (h.status || 'No Update') + '</span></td>'
             + '<td>' + (h.remarks ? h.remarks : '<span style="color:var(--muted)">No remarks</span>') + '</td>'
             + '<td>' + locCell + '</td>'
@@ -2975,7 +3254,15 @@ function renderMapFeed() {
     const items = [
         ...sos.map(s => ({ kind: 'sos', d: s })),
         ...reps.map(r => ({ kind: 'report', d: r }))
-    ].sort((a, b) => new Date(b.d.createdAt) - new Date(a.d.createdAt)).slice(0, 8);
+    ].sort((a, b) => {
+        /* Vulnerable-first ordering: cases whose reporter has registered
+         * vulnerabilities always appear above ordinary SOS/reports, even
+         * if a newer ordinary case arrived after them. */
+        const va = (a.d.reporter && Array.isArray(a.d.reporter.vulnerabilities) && a.d.reporter.vulnerabilities.length) ? 0 : 1;
+        const vb = (b.d.reporter && Array.isArray(b.d.reporter.vulnerabilities) && b.d.reporter.vulnerabilities.length) ? 0 : 1;
+        if (va !== vb) return va - vb;
+        return new Date(b.d.createdAt || 0) - new Date(a.d.createdAt || 0);
+    }).slice(0, 8);
 
     if (!items.length) {
         el.innerHTML = '<div class="empty">All clear — no active SOS or reports ✅</div>';
@@ -3014,7 +3301,22 @@ function renderSOS() {
     const assignments = lsGet(STORE.respond, []);
     const responders = lsGet(STORE.responders, []);
     const me = ADMIN.lastPos;
-    const rows = list.map(s => {
+    /* Priority sort: unresolved vulnerable-person SOS first, then other
+     * unresolved SOS, then resolved. Within each tier we fall back to
+     * recency (newest first). */
+    const sosPriority = s => {
+        const rep = s.reporter || {};
+        const vuln = Array.isArray(rep.vulnerabilities) && rep.vulnerabilities.length > 0;
+        if (s.resolvedAt) return 3;
+        if (vuln) return 0;
+        return 1;
+    };
+    const sorted = [...list].sort((a, b) => {
+        const pa = sosPriority(a), pb = sosPriority(b);
+        if (pa !== pb) return pa - pb;
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+    const rows = sorted.map(s => {
         const assign = assignments.find(a => a.caseId === s.id);
         const resp = assign ? responders.find(r => r.id === assign.responderId) : null;
         const open = !s.resolvedAt;
@@ -3029,13 +3331,13 @@ function renderSOS() {
         const acc = s.accuracy ? s.accuracy + ' m' : null;
         const src = s.locationSource;
         return `<tr>
-            <td><div class="name-cell"><div class="avatar" style="background:rgba(220,38,38,0.10); color:var(--err);">🚨</div><div><div class="n">${s.type||'SOS'}</div><div class="e">${ago(s.createdAt)} · ${src ? '<span style="color:var(--muted)">' + src + '</span>' : ''}</div></div></div></td>
-            <td><div class="name-cell"><div class="avatar">${initials(rep.name || '?')}</div><div><div class="n">${rep.name || 'Unknown'} ${verified ? '<span class="badge ok trailing">✓</span>' : '<span class="badge warn trailing">Unverified</span>'}</div><div class="e">${rep.phone || 'No phone'}${rep.purok && rep.purok !== '—' ? ' · ' + rep.purok : ''}</div>${vulns.length ? '<div class="badge-list tight">' + vulns.map(v=>'<span class="badge chip-orange">'+v+'</span>').join('') + '</div>' : ''}</div></div></td>
-            <td>${s.latitude ? '<div style="font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--navy); font-weight:600;">' + Number(s.latitude).toFixed(6) + '<br>' + Number(s.longitude).toFixed(6) + '</div><div class="e sm">' + (acc || '') + (distAdmin != null ? ' · '+fmtDist(distAdmin)+' away' : '') + '</div>' : (s.location || '—')}</td>
-            <td>${s.description ? (s.description.length > 60 ? s.description.slice(0,60)+'…' : s.description) : '<span style="color:var(--muted)">No description</span>'}${(s.attachments && s.attachments.length) ? ' <span class="badge chip-orange">📎 ' + s.attachments.length + '</span>' : ''}</td>
-            <td><span class="badge ${open?'err':'gray'}"><span class="dot"></span>${open ? 'Active' : 'Closed'}</span></td>
-            <td>${resp ? resp.name + ' <span class="badge ok trailing">' + RESP_LABEL[normResp(assign.status)] + '</span>' : '<span style="color:var(--muted)">Unassigned</span>'}</td>
-            <td>
+            <td class="sos-emergency"><div class="name-cell"><div class="avatar" style="background:rgba(220,38,38,0.10); color:var(--err);">🚨</div><div><div class="n">${s.type||'SOS'}</div><div class="e">${ago(s.createdAt)} · ${src ? '<span style="color:var(--muted)">' + src + '</span>' : ''}</div></div></div></td>
+            <td class="sos-resident"><div class="name-cell"><div class="avatar">${initials(rep.name || '?')}</div><div><div class="n">${rep.name || 'Unknown'} ${verified ? '<span class="badge ok trailing">✓</span>' : '<span class="badge warn trailing">Unverified</span>'}</div><div class="e">${rep.phone || 'No phone'}${rep.purok && rep.purok !== '—' ? ' · ' + rep.purok : ''}</div>${vulns.length ? '<div class="badge-list tight">' + vulns.map(v=>'<span class="badge chip-orange">'+v+'</span>').join('') + '</div>' : ''}</div></div></td>
+            <td class="sos-loc">${s.latitude ? '<div style="font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--navy); font-weight:600;">' + Number(s.latitude).toFixed(6) + '<br>' + Number(s.longitude).toFixed(6) + '</div><div class="e sm">' + (acc || '') + (distAdmin != null ? ' · '+fmtDist(distAdmin)+' away' : '') + '</div>' : (s.location || '—')}</td>
+            <td class="sos-desc">${s.description ? (s.description.length > 140 ? s.description.slice(0,140)+'…' : s.description) : '<span class="muted">No description</span>'}${(s.attachments && s.attachments.length) ? ' <span class="badge chip-orange">📎 ' + s.attachments.length + '</span>' : ''}</td>
+            <td class="sos-status"><span class="badge ${open?'err':'gray'}"><span class="dot"></span>${open ? 'Active' : 'Closed'}</span></td>
+            <td class="sos-assigned">${resp ? resp.name + ' <span class="badge ok trailing">' + RESP_LABEL[normResp(assign.status)] + '</span>' : '<span style="color:var(--muted)">Unassigned</span>'}</td>
+            <td class="sos-actions">
                 <div class="rn-actions wrap">
                     <button class="btn ghost sm" data-view-profile="${s.id}">Profile</button>
                     <select class="btn ghost sm" data-assign="${s.id}">
@@ -3047,10 +3349,29 @@ function renderSOS() {
             </td>
         </tr>`;
     });
-    $('#sosTable').innerHTML = tableHTML(
-        ['Emergency','Resident profile','Precise location','Description','Status','Assigned','Actions'],
-        rows
-    );
+    $('#sosTable').innerHTML = rows.length
+        ? '<table class="tbl sos-tbl">'
+            + '<colgroup>'
+                + '<col class="c-emergency">'
+                + '<col class="c-resident">'
+                + '<col class="c-loc">'
+                + '<col class="c-desc">'
+                + '<col class="c-status">'
+                + '<col class="c-assigned">'
+                + '<col class="c-actions">'
+            + '</colgroup>'
+            + '<thead><tr>'
+                + '<th>Emergency</th>'
+                + '<th>Resident profile</th>'
+                + '<th>Precise location</th>'
+                + '<th>Description</th>'
+                + '<th>Status</th>'
+                + '<th>Assigned</th>'
+                + '<th>Actions</th>'
+            + '</tr></thead>'
+            + '<tbody>' + rows.join('') + '</tbody>'
+          + '</table>'
+        : '<div class="empty">No records</div>';
 }
 
 function renderReports() {
@@ -3058,23 +3379,41 @@ function renderReports() {
     const rows = list.map(r => {
         const open = !r.resolvedAt;
         return `<tr>
-            <td><div class="name-cell"><div class="avatar">📋</div><div><div class="n">${r.type||'Incident'}</div><div class="e">${r.reporter?.name || 'Resident'} · ${ago(r.createdAt)}</div></div></div></td>
-            <td>${r.location || '—'}</td>
-            <td>${r.datetime ? fmt(r.datetime) : fmt(r.createdAt)}</td>
-            <td>${r.description ? (r.description.length > 60 ? r.description.slice(0,60)+'…' : r.description) : '<span style="color:var(--muted)">—</span>'}${(r.attachments && r.attachments.length) ? ' <span class="badge" style="background:rgba(255,101,0,0.10); color:var(--orange); border:1px solid rgba(255,101,0,0.25)">📎 ' + r.attachments.length + '</span>' : ''}</td>
-            <td><span class="badge ${open?'warn':'gray'}"><span class="dot"></span>${open ? 'Under review' : 'Resolved'}</span></td>
-            <td>
-                <div class="rn-actions">
+            <td class="rep-incident"><div class="name-cell"><div class="avatar">📋</div><div><div class="n">${r.type||'Incident'}</div><div class="e">${r.reporter?.name || 'Resident'} · ${ago(r.createdAt)}</div></div></div></td>
+            <td class="rep-loc">${r.location || '—'}</td>
+            <td class="rep-date">${r.datetime ? fmt(r.datetime) : fmt(r.createdAt)}</td>
+            <td class="rep-desc">${r.description ? (r.description.length > 140 ? r.description.slice(0,140)+'…' : r.description) : '<span class="muted">—</span>'}${(r.attachments && r.attachments.length) ? ' <span class="badge" style="background:rgba(255,101,0,0.10); color:var(--orange); border:1px solid rgba(255,101,0,0.25)">📎 ' + r.attachments.length + '</span>' : ''}</td>
+            <td class="rep-status"><span class="badge ${open?'warn':'gray'}"><span class="dot"></span>${open ? 'Under review' : 'Resolved'}</span></td>
+            <td class="rep-actions">
+                <div class="rn-actions wrap">
                     <button class="btn ghost sm" data-view-profile="${r.id}">Open${(r.attachments && r.attachments.length) ? ' 📎' + r.attachments.length : ''}</button>
                     ${open ? `<button class="btn ok sm" data-close-rep="${r.id}">Resolve</button>` : ''}
+                    <button class="btn err sm" data-del-rep="${r.id}" title="Permanently delete this report">Delete</button>
                 </div>
             </td>
         </tr>`;
     });
-    $('#incidentsTable').innerHTML = tableHTML(
-        ['Incident','Location','Date','Description','Status','Actions'],
-        rows
-    );
+    $('#incidentsTable').innerHTML = rows.length
+        ? '<table class="tbl rep-tbl">'
+            + '<colgroup>'
+                + '<col class="c-incident">'
+                + '<col class="c-rloc">'
+                + '<col class="c-rdate">'
+                + '<col class="c-rdesc">'
+                + '<col class="c-rstatus">'
+                + '<col class="c-ractions">'
+            + '</colgroup>'
+            + '<thead><tr>'
+                + '<th>Incident</th>'
+                + '<th>Location</th>'
+                + '<th>Date</th>'
+                + '<th>Description</th>'
+                + '<th>Status</th>'
+                + '<th>Actions</th>'
+            + '</tr></thead>'
+            + '<tbody>' + rows.join('') + '</tbody>'
+          + '</table>'
+        : '<div class="empty">No records</div>';
 }
 
 function renderResponders() {
@@ -3463,8 +3802,15 @@ function renderResources() {
     $('#resourceList').innerHTML = list.map(r => `
         <div class="row-item">
             <div class="ri-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-            <div class="ri-body"><div class="ri-title">${r.title}</div><div class="ri-sub">${r.category} · updated ${ago(r.updated)}</div></div>
-            <div class="ri-actions"><span class="badge ${r.offline?'ok':'gray'}">${r.offline?'Offline-ready':'Online only'}</span><button class="btn ghost sm" data-toggle-res="${r.id}">Toggle</button></div>
+            <div class="ri-body">
+                <div class="ri-title">${esc(r.title)}</div>
+                <div class="ri-sub">${esc(r.category)} · updated ${ago(r.updated)}${r.body ? '<br>' + esc(r.body) : ''}${r.link ? '<br><span class="pc">' + esc(r.link) + '</span>' : ''}</div>
+            </div>
+            <div class="ri-actions">
+                <span class="badge ${r.offline?'ok':'gray'}">${r.offline?'Offline-ready':'Online only'}</span>
+                <button class="btn ghost sm" data-toggle-res="${r.id}">Toggle</button>
+                <button class="btn ghost sm" data-del-res="${r.id}">Delete</button>
+            </div>
         </div>`).join('') || '<div class="empty">No resources</div>';
 }
 
@@ -3582,6 +3928,12 @@ document.addEventListener('click', function (e) {
         const list = lsGet(STORE.alerts, []).map(a => a.id === id ? { ...a, resolvedAt: new Date().toISOString() } : a);
         lsSet(STORE.alerts, list);
         toast('SOS marked resolved');
+        /* Drop the resolved pin from both the big dispatch map and the
+         * dashboard mini-map immediately (without requiring a page
+         * navigation) — collectMapPoints already filters `!resolvedAt`,
+         * we just need to repaint. */
+        if (adminMap) drawMarkers(adminMap, adminMarkers, activeFilter);
+        refreshMiniMap();
         render('sos'); refreshCounts();
         return;
     }
@@ -3596,16 +3948,68 @@ document.addEventListener('click', function (e) {
         if (navBtn) navBtn.click();
         const _center = () => {
             if (!adminMap) { setTimeout(_center, 300); return; }
+            /* Drop a dedicated precision overlay on top of the standard
+             * household pin: a pulsing crosshair, an accuracy ring sized
+             * from hh.accuracy (meters), and a rich popup with the exact
+             * lat/lng, accuracy, purok, status, vulnerabilities and
+             * submitted timestamp. Removed on the next Locate so only one
+             * precision highlight is ever visible. */
+            if (adminMap._hhPrecision) {
+                try { adminMap._hhPrecision.forEach(l => adminMap.removeLayer(l)); } catch(_){}
+            }
+            adminMap._hhPrecision = [];
+            const vulns = householdVulnList(hh);
+            const color = (hh.status === 'Missing') ? '#dc2626'
+                        : (hh.status === 'Need Assistance') ? '#ff6500'
+                        : vulns.length ? '#f59e0b' : '#16a34a';
+            const acc = Number.isFinite(hh.accuracy) ? Math.max(5, Math.min(hh.accuracy, 5000)) : null;
+            if (acc != null) {
+                const ring = L.circle([hh.lat, hh.lng], {
+                    radius: acc, color, weight: 1.5, dashArray: '4 3',
+                    fillColor: color, fillOpacity: 0.14, opacity: 0.55, interactive: false
+                }).addTo(adminMap);
+                adminMap._hhPrecision.push(ring);
+            }
+            const cross = L.marker([hh.lat, hh.lng], {
+                icon: L.divIcon({
+                    className: '',
+                    html: '<div class="loc-pin pulse" style="color:' + color + ';">'
+                        + '<svg class="body" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">'
+                        + '<circle cx="22" cy="22" r="20" fill="none" stroke="' + color + '" stroke-width="1.5" opacity="0.55"/>'
+                        + '<circle cx="22" cy="22" r="13" fill="' + color + '" stroke="#fff" stroke-width="2.2"/>'
+                        + '<line x1="22" y1="2" x2="22" y2="12" stroke="' + color + '" stroke-width="2" stroke-linecap="round"/>'
+                        + '<line x1="22" y1="32" x2="22" y2="42" stroke="' + color + '" stroke-width="2" stroke-linecap="round"/>'
+                        + '<line x1="2" y1="22" x2="12" y2="22" stroke="' + color + '" stroke-width="2" stroke-linecap="round"/>'
+                        + '<line x1="32" y1="22" x2="42" y2="22" stroke="' + color + '" stroke-width="2" stroke-linecap="round"/>'
+                        + '<circle cx="22" cy="22" r="3" fill="#fff"/></svg>'
+                        + '</div>',
+                    iconSize: [44, 44], iconAnchor: [22, 22], popupAnchor: [0, -22]
+                }),
+                zIndexOffset: 1200, riseOnHover: true,
+                title: (hh.residentName || 'Resident')
+            }).addTo(adminMap);
+            const whenStr = hh.updatedAt ? ago(hh.updatedAt) : '—';
+            const coordStr = Number(hh.lat).toFixed(6) + ', ' + Number(hh.lng).toFixed(6);
+            const accStr = Number.isFinite(hh.accuracy) ? ' ±' + Math.round(hh.accuracy) + ' m' : '';
+            const srcStr = hh.source === 'gps' ? 'GPS' : (hh.source || 'manual');
+            cross.bindPopup(
+                '<div style="min-width:220px;line-height:1.45">'
+              +   '<b style="color:' + color + '">' + esc(hh.residentName || 'Resident') + '</b>'
+              +   (vulns.length ? '<br><span style="color:#ff6500;font-weight:600">⚠ ' + vulns.map(esc).join(', ') + '</span>' : '')
+              +   '<br><span class="badge ' + (hh.status === 'Safe' ? 'ok' : hh.status === 'Missing' ? 'err' : 'warn') + '">' + esc(hh.status || 'No Update') + '</span>'
+              +   '<br><b>📍 ' + coordStr + '</b>' + accStr + ' · ' + srcStr
+              +   '<br><span class="pc">' + esc(hh.purok || '—') + ' · updated ' + whenStr + '</span>'
+              +   (hh.remarks ? '<br><span style="color:var(--muted)">' + esc(hh.remarks) + '</span>' : '')
+              +   (hh.phone ? '<br><a href="tel:' + esc(hh.phone) + '">☏ ' + esc(hh.phone) + '</a>' : '')
+              + '</div>',
+                { maxWidth: 320 }
+            );
+            adminMap._hhPrecision.push(cross);
             adminMap.flyTo([hh.lat, hh.lng], 18, { duration: 1.1 });
-            setTimeout(() => {
-                const hit = (adminMarkers || []).find(m => {
-                    const ll = m.getLatLng && m.getLatLng();
-                    return ll && Math.abs(ll.lat - hh.lat) < 1e-6 && Math.abs(ll.lng - hh.lng) < 1e-6;
-                });
-                if (hit) hit.openPopup();
-            }, 900);
+            setTimeout(() => { try { cross.openPopup(); } catch(_){} }, 1200);
         };
         setTimeout(_center, 260);
+        toast('📍 Centered on ' + (hh.residentName || 'household') + (hh.accuracy ? ' · GPS ±' + Math.round(hh.accuracy) + ' m' : ''));
         return;
     }
     const contactHh = e.target.closest('[data-contact-household]');
@@ -3660,7 +4064,33 @@ document.addEventListener('click', function (e) {
         const list = lsGet(STORE.reports, []).map(r => r.id === id ? { ...r, resolvedAt: new Date().toISOString() } : r);
         lsSet(STORE.reports, list);
         toast('Report resolved');
+        /* Remove the report pin from both admin dispatch map and mini-map
+         * as soon as the resolve is stamped — same reason as the SOS path
+         * above. */
+        if (adminMap) drawMarkers(adminMap, adminMarkers, activeFilter);
+        refreshMiniMap();
         render('reports'); refreshCounts();
+        return;
+    }
+    /* Permanent delete — wipes the report row from the admin table, the
+     * localStorage list, the server data.json, and any open pins on the
+     * dispatch + mini maps. Ask the admin first so an accidental click
+     * doesn't nuke a live case. */
+    const delRep = e.target.closest('[data-del-rep]');
+    if (delRep) {
+        const id = delRep.dataset.delRep;
+        const rec = lsGet(STORE.reports, []).find(r => r.id === id);
+        if (!rec) { toast('Report already removed'); render('reports'); return; }
+        const label = (rec.type || 'Incident') + (rec.reporter && rec.reporter.name ? ' · ' + rec.reporter.name : '');
+        if (!window.confirm('Delete this incident report permanently?\n\n' + label + '\n\nThis cannot be undone.')) return;
+        lsSet(STORE.reports, lsGet(STORE.reports, []).filter(r => r.id !== id));
+        renderReports();
+        refreshCounts();
+        if (adminMap) drawMarkers(adminMap, adminMarkers, activeFilter);
+        refreshMiniMap();
+        fetch(API_BASE + '/api/report/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {});
+        try { const bc = new BroadcastChannel('rescuenet'); bc.postMessage('rn_report_deleted'); bc.close(); } catch(_){}
+        toast('Incident report deleted');
         return;
     }
     const toggle = e.target.closest('[data-toggle]');
@@ -3690,14 +4120,31 @@ document.addEventListener('click', function (e) {
         const id = delAnn.dataset.delAnn;
         lsSet(STORE.announce, lsGet(STORE.announce, []).filter(a => a.id !== id));
         renderAnnouncements();
+        /* Sync delete to server so resident devices drop the announcement
+         * on their next pull / SSE tick. */
+        fetch(API_BASE + '/api/announcement/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {});
+        try { const bc = new BroadcastChannel('rescuenet'); bc.postMessage('rn_announcement_deleted'); bc.close(); } catch(_){}
         toast('Announcement deleted');
         return;
     }
     const togRes = e.target.closest('[data-toggle-res]');
     if (togRes) {
         const id = togRes.dataset.toggleRes;
-        lsSet(STORE.resources, lsGet(STORE.resources, []).map(r => r.id === id ? { ...r, offline: !r.offline } : r));
+        const updated = lsGet(STORE.resources, []).map(r => r.id === id ? { ...r, offline: !r.offline } : r);
+        lsSet(STORE.resources, updated);
         renderResources();
+        const rec = updated.find(r => r.id === id);
+        if (rec) fetch(API_BASE + '/api/resource', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rec) }).catch(() => {});
+        return;
+    }
+    const delRes = e.target.closest('[data-del-res]');
+    if (delRes) {
+        const id = delRes.dataset.delRes;
+        lsSet(STORE.resources, lsGet(STORE.resources, []).filter(r => r.id !== id));
+        renderResources();
+        fetch(API_BASE + '/api/resource/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {});
+        try { const bc = new BroadcastChannel('rescuenet'); bc.postMessage('rn_resource_deleted'); bc.close(); } catch(_){}
+        toast('Resource removed');
         return;
     }
     const viewProfile = e.target.closest('[data-view-profile]');
@@ -3836,6 +4283,10 @@ document.addEventListener('change', function (e) {
             // Sync resolved status to server
             const resolvedAlert = lsGet(STORE.alerts, []).find(x => x.id === caseId);
             if (resolvedAlert) fetch(API_BASE + '/api/alert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(resolvedAlert) }).catch(()=>{});
+            /* Resolved case → wipe pin from both admin dispatch map and
+             * dashboard mini-map so the board only shows live incidents. */
+            if (adminMap) drawMarkers(adminMap, adminMarkers, activeFilter);
+            refreshMiniMap();
         }
         adminChatPush(caseId, '⚙ Status changed to "' + RESP_LABEL[stat.value] + '" by the Barangay Official');
         try { const bc = new BroadcastChannel('rescuenet'); bc.postMessage('rn_response_updated'); bc.close(); } catch(e2){}
@@ -3871,6 +4322,43 @@ document.getElementById('annPublish').addEventListener('click', function () {
 });
 document.getElementById('annClear').addEventListener('click', function () {
     $('#annTitle').value = ''; $('#annBody').value = ''; $('#annAudience').selectedIndex = 0;
+});
+
+/* ---------- emergency resources compose ---------- */
+document.getElementById('resPublish').addEventListener('click', function () {
+    const t = $('#resTitle').value.trim();
+    const c = $('#resCategory').value;
+    const b = $('#resBody').value.trim();
+    const l = $('#resLink').value.trim();
+    const off = $('#resOffline').value === '1';
+    if (!t) { toast('Add a title for the resource first'); return; }
+    const rec = {
+        id: 'RS-' + Date.now().toString(36),
+        title: t,
+        category: c,
+        body: b,
+        link: l,
+        offline: off,
+        updated: new Date().toISOString()
+    };
+    const list = lsGet(STORE.resources, []);
+    list.unshift(rec);
+    lsSet(STORE.resources, list);
+    $('#resTitle').value = ''; $('#resBody').value = ''; $('#resLink').value = '';
+    $('#resCategory').selectedIndex = 0; $('#resOffline').selectedIndex = 0;
+    renderResources();
+    // Sync to server so resident + responder devices see the new resource
+    fetch(API_BASE + '/api/resource', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rec)
+    }).catch(() => {});
+    try { const bc = new BroadcastChannel('rescuenet'); bc.postMessage('rn_resource_published'); bc.close(); } catch(e){}
+    toast('📘 Resource published');
+});
+document.getElementById('resClear').addEventListener('click', function () {
+    $('#resTitle').value = ''; $('#resBody').value = ''; $('#resLink').value = '';
+    $('#resCategory').selectedIndex = 0; $('#resOffline').selectedIndex = 0;
 });
 
 /* ---------- topbar buttons + search ---------- */
@@ -4194,6 +4682,11 @@ function startRealtime() {
                 lsSet(STORE.households, list);
                 const active = document.querySelector('.screen.active');
                 if (active && active.dataset.screen === 'household') renderHouseholds();
+                /* A resident just submitted a fresh status with GPS — the
+                 * dispatch map (big Leaflet) must repaint so the pin
+                 * appears / moves to the new precise coordinate without
+                 * waiting for the next pullRemote tick. */
+                if (adminMap) drawMarkers(adminMap, adminMarkers, activeFilter);
                 refreshMiniMap();
             } catch(e){}
         });
@@ -4260,6 +4753,11 @@ function startRealtime() {
                     lsSet(STORE.households, list);
                     const active = document.querySelector('.screen.active');
                     if (active && active.dataset.screen === 'household') renderHouseholds();
+                    /* Same reason as SSE branch — Capacitor long-poll
+                     * must repaint the dispatch map so the fresh
+                     * household pin shows at the resident's exact GPS. */
+                    if (adminMap) drawMarkers(adminMap, adminMarkers, activeFilter);
+                    refreshMiniMap();
                 } else if (evt.type === 'assignment_updated') {
                     const asgn = evt.data;
                     const list = lsGet(STORE.respond, []);

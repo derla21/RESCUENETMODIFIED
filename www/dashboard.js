@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const RESPONDER_LOCATION_KEY = 'rn_responder_location';
   const RESPONDER_ASSIGNMENTS_KEY = 'rn_responder_assignments';
   const RESPONDER_TEAM_KEY = 'rn_responder_team';
-  const SYNC_API_URL = (window.RN_SERVER || 'http://192.168.0.197:3000') + '/api/sync';
+  const SYNC_API_URL = (window.RN_SERVER || 'http://10.156.89.119:3000') + '/api/sync';
 
   function readAssignments() {
     try {

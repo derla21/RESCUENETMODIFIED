@@ -319,7 +319,7 @@ function readStore() {
   }
 }
 function emptyStore() {
-  return { alerts: [], reports: [], residents: [], assignments: [], households: [], announcements: [], responderLocations: {}, responders: [] };
+  return { alerts: [], reports: [], residents: [], assignments: [], households: [], announcements: [], resources: [], responderLocations: {}, responders: [] };
 }
 function writeStore(store) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(store, null, 2));
@@ -450,6 +450,7 @@ app.post('/api/sync', (req, res) => {
   if (Array.isArray(incoming.assignments))  { next.assignments = incoming.assignments; changed.push('assignments'); }
   if (Array.isArray(incoming.households))   { next.households = incoming.households; changed.push('households'); }
   if (Array.isArray(incoming.announcements)){ next.announcements = incoming.announcements; changed.push('announcements'); }
+  if (Array.isArray(incoming.resources))    { next.resources      = incoming.resources;    changed.push('resources'); }
   writeStore(next);
   changed.forEach(key => broadcast('sync_' + key, next[key]));
   res.json({ ok: true });
@@ -494,6 +495,14 @@ app.post('/api/report', (req, res) => {
   store.reports = reports.slice(0, 50);
   writeStore(store);
   broadcast('new_report', report);
+  res.json({ ok: true });
+});
+
+app.delete('/api/report/:id', (req, res) => {
+  const store = readStore();
+  store.reports = (store.reports || []).filter(r => r.id !== req.params.id);
+  writeStore(store);
+  broadcast('report_deleted', { id: req.params.id });
   res.json({ ok: true });
 });
 
@@ -697,6 +706,38 @@ app.delete('/api/announcement/:id', (req, res) => {
   store.announcements = (store.announcements || []).filter(a => a.id !== req.params.id);
   writeStore(store);
   broadcast('announcement_deleted', { id: req.params.id });
+  res.json({ ok: true });
+});
+
+/* ==========================================================
+   EMERGENCY RESOURCES (admin → residents)
+   Guides / hotlines / checklists that residents can open
+   offline. Same upsert + delete + SSE broadcast pattern as
+   announcements so client devices pull the current list.
+   ========================================================== */
+app.get('/api/resources', (req, res) => {
+  res.json(readStore().resources || []);
+});
+
+app.post('/api/resource', (req, res) => {
+  const rec = req.body || null;
+  if (!rec || !rec.id) return res.status(400).json({ ok: false, error: 'Missing resource' });
+  const store = readStore();
+  const list = [...(store.resources || [])];
+  const idx = list.findIndex(r => r.id === rec.id);
+  if (idx >= 0) list[idx] = rec;
+  else list.unshift(rec);
+  store.resources = list;
+  writeStore(store);
+  broadcast('resource_updated', rec);
+  res.json({ ok: true });
+});
+
+app.delete('/api/resource/:id', (req, res) => {
+  const store = readStore();
+  store.resources = (store.resources || []).filter(r => r.id !== req.params.id);
+  writeStore(store);
+  broadcast('resource_deleted', { id: req.params.id });
   res.json({ ok: true });
 });
 

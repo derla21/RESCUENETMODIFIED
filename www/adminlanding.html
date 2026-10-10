@@ -647,6 +647,9 @@
       font: inherit;
     }
 
+    /* Reset decorative borders / shadows that could paint visible tile
+     * seams but leave Leaflet's own visibility + opacity transitions
+     * untouched so unloaded tiles remain hidden until their image paints. */
     .leaflet-tile,
     .leaflet-tile-pane,
     .leaflet-layer,
@@ -656,9 +659,16 @@
       border: none !important;
       outline: none !important;
       box-shadow: none !important;
-      filter: none !important;
-      opacity: 1 !important;
-      background: transparent !important;
+    }
+
+    /* Snap loaded tiles onto the GPU compositor so fractional-pixel
+     * positioning rounds to whole pixels and the 1-px inter-tile seam
+     * disappears. Do NOT override opacity here — Leaflet already fades
+     * tiles from visibility: hidden to visible as they load. */
+    .leaflet-tile-loaded {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      will-change: transform;
     }
 
     .leaflet-control-zoom {
@@ -1253,15 +1263,38 @@
       worldCopyJump: true
     }).setView([10.653, 122.946], 13);
 
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    /* Standard Leaflet + OpenStreetMap public tile server. Uses the a/b/c
+     * subdomains, retina detection (Leaflet fetches the @2x variant when
+     * the WebView is HiDPI, eliminating the 1-px seam that otherwise
+     * reads as a grid), and the required OSM attribution. */
     const originalMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      subdomains: 'abc',
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
+      minZoom: 3,
+      detectRetina: true,
+      crossOrigin: true,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
 
     originalMap.addTo(map);
 
     const emergencyMarker = L.marker([10.653, 122.946]).addTo(map);
     emergencyMarker.bindPopup('RescueNet Response Zone');
+
+    /* Re-measure the container once layout settles (fonts / hero / modal
+     * can shift #map by a few pixels after first paint) and again on every
+     * window resize. Without this, Leaflet sometimes renders its tile
+     * grid offset from the visible viewport and leaves a pale band that
+     * looks like an empty tile slot. */
+    function remeasureMap() {
+      try { map.invalidateSize({ animate: false, pan: false }); } catch (e) {}
+    }
+    setTimeout(remeasureMap, 120);
+    setTimeout(remeasureMap, 500);
+    window.addEventListener('resize', remeasureMap);
+    window.addEventListener('orientationchange', remeasureMap);
   </script>
 
 </body>

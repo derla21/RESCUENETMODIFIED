@@ -67,25 +67,42 @@
             position: relative;
             z-index: 3;
             padding: 40px 24px 32px;
+            padding-top: 84px; /* reserve space for the fixed top-bar */
             text-align: center;
         }
 
-        /* BACK */
+        /* BACK — pinned to the top-left of the phone frame so it behaves
+         * like the native back button on every screen in the registration
+         * flow. Uses safe-area padding so the notch/status bar on modern
+         * Android + iOS doesn't clip it. Sits above the content (z-index)
+         * and is independent of the section's text-align. */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            padding: calc(18px + env(safe-area-inset-top, 0px)) 20px 12px 20px;
+            pointer-events: none; /* only the button itself should catch taps */
+        }
 
         .back-button {
+            pointer-events: auto;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
             border: 1px solid var(--line);
             background: var(--soft);
             color: var(--navy);
             text-decoration: none;
-            font-size: 17px;
+            font-size: 18px;
             line-height: 1;
-            margin-bottom: 22px;
+            box-shadow: 0 2px 6px rgba(16, 45, 92, 0.06);
         }
 
         .back-button:hover {
@@ -260,6 +277,56 @@
             transform: none;
         }
 
+        /* RETAKE — secondary ghost style shown next to the primary
+         * "Verify This Photo" button once a selfie has been captured.
+         * Uses the same 52-px height + 13-px radius so the two buttons
+         * align on a row. Hidden until phase reaches 'captured'. */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .btn-row .camera-button { flex: 1 1 0; min-width: 0; }
+
+        .retake-button {
+            display: none;
+            flex: 0 0 auto;
+            height: 52px;
+            padding: 0 18px;
+            border-radius: 13px;
+            border: 1.5px solid var(--line);
+            background: var(--soft);
+            color: var(--navy);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.22s ease;
+        }
+
+        .retake-button.show { display: inline-flex; }
+
+        .retake-button:hover {
+            background: #ffffff;
+            border-color: var(--orange);
+            color: var(--orange);
+            transform: translateY(-1px);
+        }
+
+        .retake-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .retake-button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         /* STATUS */
 
         .status {
@@ -318,6 +385,12 @@
                 border-radius: 0;
                 border: 0;
                 box-shadow: none;
+            }
+
+            .top-bar {
+                padding-top: calc(14px + env(safe-area-inset-top, 0px));
+                padding-left: 16px;
+                padding-right: 16px;
             }
         }
 
@@ -385,11 +458,12 @@
 
 <div class="mobile-app">
 
-    <div class="facial-section">
-
-        <!-- BACK -->
+    <!-- BACK — pinned to the top of the phone frame -->
+    <div class="top-bar">
         <a href="documents.html" class="back-button" aria-label="Go back">←</a>
+    </div>
 
+    <div class="facial-section">
 
         <!-- HEADER -->
 
@@ -457,13 +531,23 @@
 
         <!-- BUTTON -->
 
-        <button
-            class="camera-button"
-            id="cameraButton">
+        <div class="btn-row">
+            <button
+                class="retake-button"
+                id="retakeButton"
+                type="button"
+                aria-label="Retake photo">
+                ↺ Retake
+            </button>
 
-            Start Facial Verification
+            <button
+                class="camera-button"
+                id="cameraButton">
 
-        </button>
+                Start Facial Verification
+
+            </button>
+        </div>
 
 
         <!-- STATUS -->
@@ -509,12 +593,28 @@
     const placeholder = document.getElementById("placeholder");
     const faceGuide = document.getElementById("faceGuide");
     let button = document.getElementById("cameraButton");
+    const retakeBtn = document.getElementById("retakeButton");
     const status = document.getElementById("status");
     const canvas = document.getElementById("captureCanvas");
     const fileInput = document.getElementById('fileInput');
 
     let stream = null;
     let phase = 'idle'; // idle | preview | captured
+    /* Reference to the <img> element we appended to the camera container
+     * when the Capacitor Camera plugin path was used. Retake needs to
+     * remove it so the fresh getUserMedia preview is visible. */
+    let pluginPreviewImg = null;
+
+    /* Show / hide the secondary Retake button based on phase. Kept as a
+     * tiny helper so every state transition (idle → preview → captured
+     * → verifying) can flip it in one line without leaking the class
+     * manipulation into the individual capture code paths. */
+    function setPhase(next) {
+        phase = next;
+        if (next === 'captured') retakeBtn.classList.add('show');
+        else retakeBtn.classList.remove('show');
+        retakeBtn.disabled = (next !== 'captured');
+    }
 
     /* ============================================
        CAPACITOR DETECTION + PERMISSION
@@ -551,6 +651,59 @@
     });
 
     /* ============================================
+       RETAKE — wipe the captured frame and reopen the
+       camera (or the fallback file-input if we are in
+       that mode). Resets session state so the admin
+       preview never sees a stale selfie.
+       ============================================ */
+    retakeBtn.addEventListener('click', async function () {
+        if (phase !== 'captured') return;
+        retakeBtn.disabled = true;
+        button.disabled = true;
+        status.style.display = 'block';
+        status.textContent = 'Discarding previous photo\u2026';
+
+        // Stop any lingering getUserMedia stream
+        try { if (stream) stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        stream = null;
+        camera.srcObject = null;
+        camera.style.display = 'none';
+
+        // Clear canvas + hide captured frame
+        try {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width || 640, canvas.height || 480);
+        } catch (e) {}
+        canvas.style.display = 'none';
+        canvas.width = canvas.width || 1;
+        canvas.height = canvas.height || 1;
+
+        // Remove the plugin-preview <img> if the Capacitor path appended one
+        if (pluginPreviewImg && pluginPreviewImg.parentNode) {
+            try { pluginPreviewImg.parentNode.removeChild(pluginPreviewImg); } catch (e) {}
+        }
+        pluginPreviewImg = null;
+
+        // Reset stored selfie data so the old photo isn't resubmitted
+        try { sessionStorage.removeItem('rescueFacialDataUrl'); } catch (e) {}
+        FACIAL_DATA_URL = '';
+
+        faceGuide.style.display = 'none';
+        placeholder.style.display = 'flex';
+
+        setPhase('idle');
+        button.textContent = 'Start Facial Verification';
+        button.disabled = false;
+        status.textContent = 'Ready \u2014 tap to open the camera again.';
+
+        /* Auto-reopen the camera so the resident lands straight back on
+         * the preview (one-tap retake feel), matching the native camera
+         * app behaviour. Falls through to startCamera's normal permission
+         * + getUserMedia flow. */
+        setTimeout(function () { try { startCamera(); } catch (e) {} }, 260);
+    });
+
+    /* ============================================
        START CAMERA (in-app getUserMedia)
        ============================================ */
     async function startCamera() {
@@ -579,7 +732,7 @@
             button.textContent = "Capture Face";
             button.disabled = false;
             status.textContent = "Position your face inside the frame.";
-            phase = 'preview';
+            setPhase('preview');
 
         } catch (error) {
             console.warn('getUserMedia failed:', error.message);
@@ -607,7 +760,7 @@
        ============================================ */
     async function captureFace() {
         if (phase !== 'preview' || !stream) return;
-        phase = 'capturing';
+        setPhase('capturing');
         button.disabled = true;
 
         // Draw current video frame to canvas (in-app capture)
@@ -636,8 +789,8 @@
 
         button.textContent = 'Verify This Photo';
         button.disabled = false;
-        status.textContent = 'Photo captured. Tap to verify.';
-        phase = 'captured';
+        status.textContent = 'Photo captured. Tap Verify to submit, or ↺ Retake to try again.';
+        setPhase('captured');
     }
 
     /* Downscale a canvas/image into a compact JPEG dataURL (max side 640 px) */
@@ -670,6 +823,7 @@
         status.textContent = 'Processing facial verification\u2026';
         canvas.style.display = 'none';
         faceGuide.style.display = 'none';
+        setPhase('verifying');   // hide the Retake button while processing
         setTimeout(completeVerification, 1200);
     }
 
@@ -699,12 +853,13 @@
                 img.style.borderRadius = '20px';
                 img.onload = function() {
                     canvas.parentNode.appendChild(img);
+                    pluginPreviewImg = img;      // retake removes this element
                     canvas.style.display = 'none';
                     faceGuide.style.display = 'none';
-                    status.textContent = 'Selfie captured! Tap to verify.';
+                    status.textContent = 'Selfie captured! Tap Verify to submit, or ↺ Retake to try again.';
                     button.textContent = 'Verify This Photo';
                     button.disabled = false;
-                    phase = 'captured'; // route next click through phase handler
+                    setPhase('captured');        // route next click through phase handler + show Retake
                     // Persist downscaled selfie for admin verification preview
                     try {
                         snapshotImgToDataUrl(img, 640).then(function (url) {
@@ -726,47 +881,101 @@
 
     /* ============================================
        FILE INPUT LAST RESORT
+       Same captured → verify / retake flow as the
+       getUserMedia path so residents on devices
+       without WebView camera access can still
+       review the selfie before it is submitted.
        ============================================ */
     fileInput.addEventListener('change', function(e) {
         if (!e.target.files || !e.target.files.length) return;
-        status.textContent = 'Processing uploaded selfie...';
         button.disabled = true;
-        button.textContent = 'Verifying...';
-        // Read the file so we still have a selfie preview to store on the resident
+        status.style.display = 'block';
+        status.textContent = 'Loading your selfie\u2026';
+        const file = e.target.files[0];
         try {
             const fr = new FileReader();
             fr.onload = function () {
                 const raw = fr.result || '';
                 const im = new Image();
                 im.onload = function () {
+                    // Show the uploaded photo inline (same slot as the
+                    // plugin path uses) so the Retake button has something
+                    // to discard.
+                    im.style.width = '100%';
+                    im.style.borderRadius = '20px';
+                    if (canvas.parentNode) canvas.parentNode.appendChild(im);
+                    pluginPreviewImg = im;
+                    canvas.style.display = 'none';
+                    faceGuide.style.display = 'none';
+                    placeholder.style.display = 'none';
                     try {
                         FACIAL_DATA_URL = snapshotCanvasToDataUrl(im, 640);
                     } catch (err) { FACIAL_DATA_URL = raw; }
                     try { sessionStorage.setItem('rescueFacialDataUrl', FACIAL_DATA_URL); } catch (err) {}
+                    button.textContent = 'Verify This Photo';
+                    button.disabled = false;
+                    status.textContent = 'Selfie loaded. Tap Verify to submit, or ↺ Retake to pick another.';
+                    setPhase('captured');
+                    /* Reset input value so selecting the *same* file
+                     * again still fires the change event. */
+                    try { e.target.value = ''; } catch (_){}
                 };
-                im.onerror = function () { try { sessionStorage.setItem('rescueFacialDataUrl', raw); } catch (err) {} };
+                im.onerror = function () {
+                    try { sessionStorage.setItem('rescueFacialDataUrl', raw); } catch (err) {}
+                    setPhase('captured');
+                    button.disabled = false;
+                    button.textContent = 'Verify This Photo';
+                    status.textContent = 'Selfie loaded. Tap Verify to submit.';
+                };
                 im.src = raw;
             };
-            fr.readAsDataURL(e.target.files[0]);
-        } catch (err) {}
-        setTimeout(completeVerification, 1200);
+            fr.readAsDataURL(file);
+        } catch (err) {
+            setPhase('captured');
+            button.disabled = false;
+            status.textContent = 'Selfie loaded. Tap Verify to submit.';
+        }
     });
+
+    /* When Retake is pressed while the file-input fallback is active,
+     * reopen the picker instead of trying to launch getUserMedia. */
+    const _origRetake = retakeBtn.onclick;
+    retakeBtn.addEventListener('click', function () {
+        // The main Retake handler already resets state; if the user is
+        // on the file-input path (button.textContent === 'Take Selfie'),
+        // immediately open the picker again.
+        setTimeout(function () {
+            if (button.textContent === 'Take Selfie' || button.textContent.indexOf('Take Selfie') >= 0) {
+                try { fileInput.click(); } catch (e) {}
+            }
+        }, 320);
+    }, { passive: true });
 
     /* ============================================
        COMPLETION
        ============================================ */
     async function completeVerification() {
         let residentPayload = null;
+        /* Hoist the identity fields so they remain readable AFTER the
+         * try/catch below. Previously they were `const` declarations
+         * inside the try-block and fell out of scope, so the tail of
+         * this function (which writes rn_pending_resident and then
+         * fires window.location.href = 'index.html?pending=1') threw a
+         * ReferenceError that was silently swallowed by the async
+         * wrapper. That's the reason the button said
+         * "Verification Complete" but nothing happened afterwards. */
+        let fn = '', ln = '';
+        let email = null, phone = '';
         try {
             sessionStorage.setItem('facialVerified', 'true');
             status.textContent = 'Identity verified successfully!';
             button.textContent = 'Verification Complete \u2713';
             button.disabled = false;
 
-            const fn = sessionStorage.getItem('rescueFirstName') || '';
-            const ln = sessionStorage.getItem('rescueLastName') || '';
-            const email = sessionStorage.getItem('rescueEmail') || null;
-            const phone = sessionStorage.getItem('rescuePhone') || '';
+            fn = sessionStorage.getItem('rescueFirstName') || '';
+            ln = sessionStorage.getItem('rescueLastName') || '';
+            email = sessionStorage.getItem('rescueEmail') || null;
+            phone = sessionStorage.getItem('rescuePhone') || '';
             const mobileVerified = sessionStorage.getItem('mobileVerified') === 'true';
             const facialVerified = sessionStorage.getItem('facialVerified') === 'true';
             const docName = sessionStorage.getItem('rescueDocumentName');
@@ -793,16 +1002,29 @@
                         facialDataUrl: facialUrl,
                         phoneVerified: mobileVerified, emailVerified: false,
                         hasValidId: !!docName, hasFaceOrSecondaryId: facialVerified,
+                        /* Explicit status so a resident navigating directly to
+                         * dashboard.html before admin approval is bounced back
+                         * to the login screen by the gate there. The server
+                         * also defaults to 'pending' on POST /api/resident,
+                         * but writing it locally closes the offline / race
+                         * window between registration and the first poll. */
+                        status: 'pending',
+                        submittedAt: new Date().toISOString(),
                         vulnerabilities: [], registeredAt: new Date().toISOString()
                     };
                     list.unshift(resident);
                     try { localStorage.setItem(RESIDENTS_KEY, JSON.stringify(list)); } catch(e){}
-                    try {
-                        sessionStorage.setItem('rn_current_user', JSON.stringify({
-                            id: resident.id, firstName: fn, lastName: ln, email, phone
-                        }));
-                        if (email) sessionStorage.setItem('rescueNetUserEmail', email);
-                    } catch (e) {}
+                    /* DELIBERATELY DO NOT set rn_current_user here.
+                     * Previously facial.html wrote rn_current_user +
+                     * rescueNetUserEmail immediately after facial
+                     * verification, which meant the dashboard auth
+                     * gate saw a populated session and let the
+                     * resident through BEFORE a barangay admin had
+                     * actually approved them — the reported "auto
+                     * approval" bug. The login form in index.html is
+                     * now the only place that sets rn_current_user,
+                     * and it is itself gated on server status =
+                     * 'approved'. */
                     try { localStorage.setItem('rn_last_registered', JSON.stringify({ id, firstName: fn, lastName: ln, phone })); } catch(e){}
                     try { const bc = new BroadcastChannel('rescuenet'); bc.postMessage('rn_residents_updated'); bc.close(); } catch(e) {}
                     residentPayload = resident;
@@ -841,18 +1063,40 @@
         }
 
         // Keep email + phone in session/local storage so index.html can poll the approval endpoint
-        const keepEmail = sessionStorage.getItem('rescueEmail');
-        const keepPhone = phone || sessionStorage.getItem('rescuePhone');
+        const keepEmail = sessionStorage.getItem('rescueEmail') || email || '';
+        const keepPhone = sessionStorage.getItem('rescuePhone') || phone || '';
         // Persist a robust pointer for the pending card, survives reload / tab close
         try {
             localStorage.setItem('rn_pending_resident', JSON.stringify({
                 id: (residentPayload && residentPayload.id) || '',
-                email: keepEmail || '',
-                phone: keepPhone || '',
+                email: keepEmail,
+                phone: keepPhone,
                 firstName: fn || '',
                 lastName: ln || '',
                 at: new Date().toISOString()
             }));
+        } catch (e) {}
+        /* Show the waiting-for-approval screen NOW, in-place, so the
+         * resident sees an immediate visual change even before the
+         * navigation fires. This also makes the flow work correctly in
+         * Capacitor WebViews where a same-page href change can lag. */
+        try {
+            const section = document.querySelector('.facial-section');
+            if (section) {
+                section.innerHTML =
+                      '<div style="text-align:center; padding:36px 8px 24px;">'
+                    +   '<div style="width:78px;height:78px;border-radius:50%;background:#fff6ec;border:2px solid rgba(255,101,0,0.35);display:flex;align-items:center;justify-content:center;font-size:38px;color:var(--orange);margin:0 auto 18px;box-shadow:0 8px 22px rgba(255,101,0,0.20);">⏳</div>'
+                    +   '<div style="color:var(--orange);font-size:11px;font-weight:800;letter-spacing:1.6px;margin-bottom:8px;">SUBMITTED</div>'
+                    +   '<h1 style="font-size:24px;color:var(--navy);margin-bottom:10px;">Waiting for Admin Approval</h1>'
+                    +   '<p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:18px;">A barangay official will review your registration. You\u2019ll be notified by email and SMS once approved.</p>'
+                    +   (keepPhone || keepEmail ? '<div style="font-family:monospace;font-size:12px;color:var(--navy);background:var(--soft);padding:8px 12px;border-radius:10px;display:inline-block;border:1px solid var(--line);">' + (keepEmail || keepPhone) + '</div>' : '')
+                    +   '<div style="margin-top:24px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:rnPulse 1.4s ease-in-out infinite;display:inline-block;"></span> Redirecting…</div>'
+                    + '</div>';
+                // inline keyframes (page-level pulseDot is defined in index.html)
+                const st = document.createElement('style');
+                st.textContent = '@keyframes rnPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.35;transform:scale(0.85)}}';
+                document.head.appendChild(st);
+            }
         } catch (e) {}
         // clear ephemeral session values
         sessionStorage.removeItem('rescueFirstName');
@@ -868,7 +1112,18 @@
         if (keepEmail) sessionStorage.setItem('rescueEmail', keepEmail);
         if (keepPhone) sessionStorage.setItem('rescuePhone', keepPhone);
 
-        setTimeout(function() { window.location.href = 'index.html?pending=1'; }, 700);
+        /* Navigate to index.html?pending=1 after the in-place waiting
+         * screen has been visible for ~1.2s. Guard with a try/catch and
+         * an assign-fallback so a Capacitor WebView security quirk on
+         * `location.href` can't strand the resident on the completed
+         * camera screen. */
+        setTimeout(function () {
+            try {
+                window.location.href = 'index.html?pending=1';
+            } catch (e) {
+                try { window.location.assign('index.html?pending=1'); } catch (_){}
+            }
+        }, 1200);
     }
 
 </script>
