@@ -163,7 +163,7 @@ async function hydrateLoginRoster() {
             const idx = local.findIndex(x => x.id === r.id);
             if (idx < 0) { local.push(r); changed = true; }
             else {
-                const merged = { ...local[idx], ...r, status: local[idx].status || r.status, lat: local[idx].lat ?? r.lat, lng: local[idx].lng ?? r.lng };
+                const merged = { ...local[idx], ...r, status: local[idx].status || r.status, lat: r.lat ?? local[idx].lat, lng: r.lng ?? local[idx].lng };
                 if (JSON.stringify(merged) !== JSON.stringify(local[idx])) { local[idx] = merged; changed = true; }
             }
         });
@@ -265,7 +265,10 @@ function navigate(key) {
     $$('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === key));
     $$('.dock-item').forEach(n => n.classList.toggle('sel', n.dataset.nav === key));
     const meta = SCREEN_META[key] || ['', ''];
-    $('#tbEyebrow').textContent = meta[0]; $('#tbTitle').textContent = meta[1];
+    $('#tbEyebrow').textContent = meta[0];
+    /* Hide the topbar ("RescueNet · Dispatch" eyebrow + white bar) when the
+     * map is active so the incident map fills the entire vertical space. */
+    document.body.classList.toggle('map-fullscreen', key === 'map');
     if (key === 'map') setTimeout(() => { ensureMap(); if (MAP.map) { MAP.map.invalidateSize(); paintCases(); drawMine(); } }, 130);
     refresh(key);
 }
@@ -381,10 +384,6 @@ function renderAvail() {
     const me = getMe(); if (!me) return;
     const st = me.status || 'available';
     $$('#availRow .avail-btn').forEach(b => b.classList.toggle('sel', b.dataset.avail === st));
-    const chip = $('#tbAvail');
-    chip.hidden = false;
-    chip.className = 'tb-chip' + (st === 'busy' ? ' busy' : st === 'offline' ? ' off' : '');
-    $('#tbAvailLbl').textContent = st === 'available' ? 'Available' : st === 'busy' ? 'On Task' : 'Offline';
 }
 $('#availRow').addEventListener('click', e => {
     const b = e.target.closest('[data-avail]'); if (!b) return;
@@ -844,16 +843,7 @@ function checkIncomingMsgs() {
 /* ---------- map ---------- */
 const MAP = {
     map: null, caseLayer: [], byCase: {}, mine: null, focus: null,
-    accLayer: [], accByCase: {},   // ±Nm accuracy circles around SOS pins
-    // Route state (shortest road path via OSRM)
-    route: null,
-    routeGlow: null,         // outer semi-transparent halo for depth
-    routeCoords: null,       // cached [lat,lng] array from OSRM
-    routeTimer: null,        // debounce handle
-    routeCacheKey: '',       // last endpoints we successfully routed for
-    routeFetching: false,
-    routeDistanceM: null,
-    routeDurationS: null
+    accLayer: [], accByCase: {}    // ±Nm accuracy circles around SOS pins
 };
 
 /* Google Maps tiles rendered by Leaflet (matches the resident app).
@@ -900,10 +890,19 @@ function ensureMap() {
         preferCanvas: false
     }).setView(center, zoom);
     addTileLayer(MAP.map);
-    L.control.zoom({ position: 'bottomright' }).addTo(MAP.map);
+    L.control.zoom({ position: 'topright' }).addTo(MAP.map);
     // Ensure tiles render correctly after the map container becomes visible
     setTimeout(() => { try { MAP.map && MAP.map.invalidateSize(); } catch(e){} }, 150);
 }
+
+/* Keep Leaflet's internal size in sync on mobile resize / orientation change —
+ * the full-screen map container changes with the viewport. */
+(function mapResizeSync() {
+    let t = null;
+    const sync = () => { clearTimeout(t); t = setTimeout(() => { try { MAP.map && MAP.map.invalidateSize(); } catch(e){} }, 140); };
+    window.addEventListener('resize', sync);
+    window.addEventListener('orientationchange', () => setTimeout(sync, 220));
+})();
 function teardrop(color) {
     return L.divIcon({
         className: '', iconSize: [26, 34], iconAnchor: [13, 32], popupAnchor: [0, -30],
@@ -1017,7 +1016,7 @@ function paintCases() {
         MAP.byCase[c.id] = mk;
         spots.push([c.latitude, c.longitude]);
     });
-    $('#mapCaseCount').textContent = spots.length;
+    const _mapCaseCount = $('#mapCaseCount'); if (_mapCaseCount) _mapCaseCount.textContent = spots.length;
     // Auto-pick a sensible focus when none yet so the reporter card has content
     if (!MAP.focus || !findCase(MAP.focus)) MAP.focus = pickDefaultFocus();
     if (!MAP.focus && spots.length) MAP.map.fitBounds(spots, { padding: [40, 40] });
@@ -1043,7 +1042,15 @@ function refreshReporterCard() {
     if (!card) return;
     const caseId = MAP.focus;
     const c = caseId ? findCase(caseId) : null;
-    if (!c) { card.hidden = true; return; }
+    if (!c) {
+        /* Overlay layout: hiding the sheet just removes the floating card —
+         * the map's rendered size is unchanged (map-box is absolute inset: 0),
+         * so no Leaflet.invalidateSize() is needed. Also clear `.entering`
+         * so a stale animation doesn't leak into the next show. */
+        card.classList.remove('entering');
+        card.hidden = true;
+        return;
+    }
 
     const rep = c.reporter || {};
     const rawName = rep.name || c.reporterName || 'Resident';
@@ -1094,7 +1101,31 @@ function refreshReporterCard() {
         }
     }
 
+    /* Overlay layout: the sheet floats above the map (map-box is absolute
+     * inset: 0), so toggling the sheet's visibility does NOT change the
+     * map's rendered size — no Leaflet.invalidateSize() needed here. The
+     * only invalidate triggers left are the topbar-hide on screen entry
+     * and window resize / orientation changes, both handled elsewhere. */
+    const wasHidden = card.hidden;
     card.hidden = false;
+    /* One-shot entry animation ONLY when the sheet transitions hidden →
+     * visible. Applying `.entering` here (rather than leaving the keyframe
+     * on the base rule) prevents the animation from replaying at drag-end,
+     * which was the source of the perceived “bounce” when releasing the
+     * handle after a snap. The class self-removes on animationend so a
+     * subsequent re-show can start fresh. */
+    if (wasHidden) {
+        card.classList.remove('entering');
+        /* Force a reflow so re-adding `.entering` reliably restarts the
+         * keyframe even on rapid hide/show cycles. */
+        void card.offsetWidth;
+        card.classList.add('entering');
+        card.addEventListener('animationend', function onEnd(e) {
+            if (e.animationName !== 'respSheetIn') return;
+            card.classList.remove('entering');
+            card.removeEventListener('animationend', onEnd);
+        });
+    }
 }
 
 /* Wire the “open Comms” button once the DOM is ready */
@@ -1107,20 +1138,167 @@ function refreshReporterCard() {
     });
 })();
 
+/* Draggable floating overlay sheet — pointer events on .sheet-handle resize
+ * the reporter card and snap to three stops (peek / default / expanded).
+ *
+ * Because the sheet is an overlay (`.reporter-card { position: absolute;
+ * bottom: 0 }`) and the map is `.map-box { position: absolute; inset: 0 }`,
+ * the map's rendered size is constant no matter where the sheet is. The
+ * sheet simply floats higher or lower over the tiles — Leaflet never has
+ * to re-project anything during or after the gesture, which is what makes
+ * this feel much smoother than the previous stacked layout.
+ *
+ * Implementation notes:
+ *   • Shell + card geometry is cached at pointerdown so pointermove never
+ *     calls getBoundingClientRect(). Reading layout mid-gesture forces a
+ *     synchronous reflow of the whole document.
+ *   • pointermove only updates a `targetH` variable; a rAF loop eases the
+ *     actual painted `currentH` toward it (critically-damped exponential),
+ *     collapsing 120+ Hz pointer events into one style write per frame and
+ *     filtering touch jitter.
+ *   • The card is tagged with `.dragging` which enables `will-change: height`
+ *     (see CSS) so the compositor promotes it to its own layer instead of
+ *     repainting the map / dock / status chrome every frame. */
+(function wireSheetDrag() {
+    const card = document.getElementById('reporterCard');
+    if (!card) return;
+    const handle = card.querySelector('.sheet-handle');
+    if (!handle) return;
+    const shell = card.parentElement;   /* .map-shell */
+    const STOPS = [0.10, 0.28, 0.70];   /* peek, default, expanded */
+    const MIN = 0.08, MAX = 0.75;
+    let dragging = false, startY = 0, startH = 0, cachedShellH = 0;
+    /* rAF-driven smoothing: `targetH` is the pixel height the finger wants,
+     * `currentH` is the pixel height we're actually painting. Every frame
+     * we ease currentH toward targetH by a small fraction (alpha). This
+     * gives the sheet a soft, weighted physicality — pointer jitter gets
+     * filtered, redundant style writes are collapsed to one per frame,
+     * and high-poll-rate mice / 120 Hz touch screens don't overwhelm the
+     * compositor. */
+    let targetH = 0, currentH = 0, rafId = null;
+    const EASE = 0.32;                              /* ~60% of the gap covered in 3 frames at 60fps */
+    const EASE_EPS = 0.5;                           /* stop interpolating once within half a pixel */
+
+    function applyPx(px) {
+        if (!cachedShellH) return;
+        const clamped = Math.max(MIN * cachedShellH, Math.min(MAX * cachedShellH, px));
+        card.style.height = ((clamped / cachedShellH) * 100).toFixed(2) + '%';
+    }
+    function apply(r) {
+        if (!cachedShellH) return;
+        const clamped = Math.max(MIN, Math.min(MAX, r));
+        card.style.height = (clamped * 100).toFixed(2) + '%';
+    }
+    function nearest(r) {
+        let best = STOPS[0], bd = Math.abs(STOPS[0] - r);
+        for (let i = 1; i < STOPS.length; i++) {
+            const d = Math.abs(STOPS[i] - r);
+            if (d < bd) { bd = d; best = STOPS[i]; }
+        }
+        return best;
+    }
+    /* Overlay layout note: no Leaflet.invalidateSize() is needed at drag
+     * end because the map's rendered size is unchanged — the sheet just
+     * floats higher or lower over a fixed-size tile canvas. */
+
+    function tick() {
+        if (!dragging) { rafId = null; return; }
+        /* Critically-damped exponential ease: current moves a fixed fraction
+         * of the remaining distance each frame, so the sheet accelerates
+         * toward the finger and settles softly without overshoot. */
+        const delta = targetH - currentH;
+        if (Math.abs(delta) < EASE_EPS) {
+            currentH = targetH;
+        } else {
+            currentH += delta * EASE;
+        }
+        /* One style write per frame, at most. */
+        card.style.height = ((currentH / cachedShellH) * 100).toFixed(2) + '%';
+        rafId = requestAnimationFrame(tick);
+    }
+
+    function beginDrag(e) {
+        if (dragging) return;
+        dragging = true;
+        startY = e.clientY;
+        /* Cache geometry ONCE — pointermove never touches layout again. */
+        cachedShellH = shell ? shell.getBoundingClientRect().height : 0;
+        if (!cachedShellH) { dragging = false; return; }
+        startH = card.getBoundingClientRect().height;
+        currentH = targetH = startH;
+        card.classList.add('dragging');
+        try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+        if (e.cancelable) e.preventDefault();
+        /* Start the interpolation loop. */
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(tick);
+    }
+    function moveDrag(e) {
+        if (!dragging) return;
+        /* Just record the finger's desired height. tick() paints it. */
+        const dy = startY - e.clientY;                /* drag up = grow */
+        targetH = Math.max(
+            MIN * cachedShellH,
+            Math.min(MAX * cachedShellH, startH + dy)
+        );
+    }
+    function endDrag(e) {
+        if (!dragging) return;
+        dragging = false;
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        try { if (e && e.pointerId != null) handle.releasePointerCapture(e.pointerId); } catch (_) {}
+        const cur = cachedShellH ? currentH / cachedShellH : STOPS[1];
+        const target = nearest(cur);
+        /* Order matters for the snap animation: drop the `.dragging` class
+         * FIRST so the CSS `transition: height .32s` is re-enabled, then
+         * apply the snap target on the very next frame. If we do both in
+         * the same task the browser sees one style mutation with the old
+         * `transition: none` still effective and the height jumps instantly. */
+        card.classList.remove('dragging');
+        requestAnimationFrame(function () {
+            apply(target);
+        });
+    }
+
+    handle.addEventListener('pointerdown', beginDrag);
+    handle.addEventListener('pointermove', moveDrag);
+    handle.addEventListener('pointerup', endDrag);
+    handle.addEventListener('pointercancel', endDrag);
+    /* Fallback listeners on document — some Android WebViews drop pointer
+     * capture as soon as the pointer leaves the capturing element, so we
+     * still track move/up at the document level while a drag is active. */
+    document.addEventListener('pointermove', moveDrag, { passive: true });
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag);
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) endDrag({ pointerId: null });
+    });
+    handle.addEventListener('dblclick', function () {
+        /* Double-tap cycles through the three snap positions. Because
+         * `.dragging` is off, the CSS transition on the sheet's height
+         * is already active — the target set here animates smoothly.
+         * Overlay layout means no Leaflet.invalidateSize is required. */
+        const sh = shell ? shell.getBoundingClientRect().height : 0;
+        if (!sh) return;
+        const cur = card.getBoundingClientRect().height / sh;
+        cachedShellH = sh;
+        let next = STOPS[0];
+        for (const s of STOPS) if (s > cur + 0.02) { next = s; break; }
+        apply(next);
+    });
+})();
+
 function focusCase(caseId) {
     ensureMap(); if (!MAP.map) return;
     const c = findCase(caseId);
     if (!c || !c.latitude) { toast('This case has no geotag'); return; }
-    const changed = MAP.focus !== caseId;
     MAP.focus = caseId;
-    if (changed) { MAP.routeCacheKey = ''; MAP.routeCoords = null; MAP.routeDistanceM = null; MAP.routeDurationS = null; }
     // Zoom close enough to see the ±Nm accuracy ring as a tight target circle
     const acc = (typeof c.accuracy === 'number' && c.accuracy > 0) ? c.accuracy : 20;
     const zoom = acc <= 20 ? 19 : acc <= 50 ? 18 : acc <= 120 ? 17 : 16;
     MAP.map.flyTo([c.latitude, c.longitude], zoom, { duration: 1.1 });
     const mk = MAP.byCase[caseId];
     if (mk) setTimeout(() => mk.openPopup(), 1150);
-    drawRoute();
     refreshReporterCard();
 }
 document.addEventListener('rnfocus', e => { focusCase(e.detail); });
@@ -1142,134 +1320,19 @@ function drawMine() {
             + ME_POS.lat.toFixed(6) + ', ' + ME_POS.lng.toFixed(6)
             + (acc != null ? '<br>' + Math.round(acc) + ' m' : ''));
     }
-    // Debounced route refresh — don't hammer OSRM on every GPS tick
-    if (MAP.focus) scheduleRouteRefresh();
 }
 
-function drawRoute() {
-    if (!MAP.map) return;
-    if (MAP.route) { try { MAP.map.removeLayer(MAP.route); } catch(e){} MAP.route = null; }
-    if (MAP.routeGlow) { try { MAP.map.removeLayer(MAP.routeGlow); } catch(e){} MAP.routeGlow = null; }
-    $('#mapDistChip').hidden = true;
-    if (!MAP.focus || !ME_POS) return;
-    const c = findCase(MAP.focus);
-    if (!c || !c.latitude) return;
-
-    // Immediate solid straight-line so the direction is visible while OSRM loads
-    const straight = [[ME_POS.lat, ME_POS.lng], [c.latitude, c.longitude]];
-    // Glow layer (wider, semi-transparent) underneath the precise route line
-    MAP.routeGlow = L.polyline(straight, {
-        color: '#ff6500', weight: 12, opacity: 0.18,
-        lineCap: 'round', lineJoin: 'round',
-        interactive: false
-    }).addTo(MAP.map);
-    MAP.route = L.polyline(straight, {
-        color: '#ff6500', weight: 5, opacity: 0.95,
-        lineCap: 'round', lineJoin: 'round',
-        className: 'resp-route-line'
-    }).addTo(MAP.map);
-
-    // Distance chip (haversine until OSRM returns)
-    const m = metersBetween(ME_POS, { lat: c.latitude, lng: c.longitude });
-    $('#mapDistChip').hidden = false;
-    $('#mapDistLbl').textContent = fmtDist(m) + ' to ' + (c.type || 'case');
-
-    // If we already have a route cached for these endpoints, draw it now
-    if (MAP.routeCoords && MAP.routeCoords.length >= 2) {
-        applyRoute(MAP.routeCoords, MAP.routeDistanceM, MAP.routeDurationS, c);
-    } else {
-        try { MAP.map.fitBounds(L.latLngBounds(straight).pad(0.25)); } catch(e){}
-    }
-
-    // Kick off shortest-road-path fetch
-    fetchRoute(MAP.focus);
-}
-
-/* =========================================================
-   SHORTEST-ROAD-PATH ROUTING (OSRM public demo)
-   Real driving route between responder and incident.
-   Debounced; silently falls back to straight line if the
-   router is unreachable (data outage during typhoon).
-   ========================================================= */
-function scheduleRouteRefresh() {
-    if (MAP.routeTimer) clearTimeout(MAP.routeTimer);
-    MAP.routeTimer = setTimeout(() => {
-        MAP.routeTimer = null;
-        if (MAP.focus) fetchRoute(MAP.focus);
-    }, 2500);
-}
-
-function fetchRoute(caseId) {
-    if (!MAP.map || !ME_POS) return;
-    const c = findCase(caseId);
-    if (!c || !c.latitude) return;
-    if (MAP.focus !== caseId) return;
-    if (MAP.routeFetching) return;
-    const a = ME_POS, b = { lat: c.latitude, lng: c.longitude };
-    const key = a.lat.toFixed(4) + ',' + a.lng.toFixed(4) + '|' + b.lat.toFixed(4) + ',' + b.lng.toFixed(4);
-    if (key === MAP.routeCacheKey && MAP.routeCoords) { applyRoute(MAP.routeCoords, MAP.routeDistanceM, MAP.routeDurationS, c); return; }
-
-    const url = 'https://router.project-osrm.org/route/v1/driving/'
-        + a.lng.toFixed(6) + ',' + a.lat.toFixed(6) + ';'
-        + b.lng.toFixed(6) + ',' + b.lat.toFixed(6)
-        + '?overview=full&geometries=geojson&alternatives=false&steps=false';
-    MAP.routeFetching = true;
-    const ctl = ('AbortController' in window) ? new AbortController() : null;
-    const to  = ctl ? setTimeout(() => { try { ctl.abort(); } catch(e){} }, 5000) : null;
-
-    fetch(url, ctl ? { signal: ctl.signal, mode: 'cors' } : { mode: 'cors' })
-        .then(r => r.ok ? r.json() : Promise.reject(new Error('OSRM ' + r.status)))
-        .then(j => {
-            const r0 = j && j.routes && j.routes[0];
-            const coords = r0 && r0.geometry && r0.geometry.coordinates;
-            if (!coords || !coords.length) return;
-            const path = coords.map(p => [p[1], p[0]]);
-            MAP.routeCoords    = path;
-            MAP.routeCacheKey  = key;
-            MAP.routeDistanceM = r0.distance != null ? Number(r0.distance) : null;
-            MAP.routeDurationS = r0.duration  != null ? Number(r0.duration)  : null;
-            if (MAP.focus === caseId) applyRoute(path, MAP.routeDistanceM, MAP.routeDurationS, c);
-        })
-        .catch(() => { MAP.routeCacheKey = ''; })
-        .finally(() => { MAP.routeFetching = false; if (to) clearTimeout(to); });
-}
-
-function applyRoute(path, distM, durS, c) {
-    if (!MAP.map || !MAP.route) return;
-    try { MAP.route.setLatLngs(path); } catch(e){}
-    if (MAP.routeGlow) { try { MAP.routeGlow.setLatLngs(path); } catch(e){} }
-    const dist = (distM != null) ? distM : metersBetween(ME_POS, { lat: c.latitude, lng: c.longitude });
-    const eta  = durS != null ? fmtDur(durS) : null;
-    $('#mapDistChip').hidden = false;
-    $('#mapDistLbl').textContent = fmtDist(dist) + (eta ? ' \u00b7 ' + eta : '') + ' to ' + (c.type || 'case');
-    try { MAP.map.fitBounds(L.latLngBounds(path).pad(0.2)); } catch(e){}
-}
-
-function fmtDur(sec) {
-    if (sec == null || !isFinite(sec)) return '';
-    sec = Math.max(0, Math.round(sec));
-    if (sec < 60) return sec + 's';
-    const m = Math.round(sec / 60);
-    if (m < 60) return m + ' min';
-    const h = Math.floor(m / 60);
-    return h + 'h ' + (m % 60) + 'm';
-}
 $('#recenterBtn').addEventListener('click', () => {
     ensureMap(); if (!MAP.map) return;
     if (ME_POS) MAP.map.flyTo([ME_POS.lat, ME_POS.lng], 16);
     else toast('Waiting for your GPS fix…');
 });
-$('#routeBtn').addEventListener('click', () => {
-    const target = myCases().find(c => c.assign.status !== 'assigned' && c.assign.status !== 'resolved') || myCases()[0];
-    if (!target) { toast('No assigned case to route to'); return; }
-    $('#routeBtn').classList.add('on');
-    focusCase(target.id);
-});
 
 /* ---------- own live position ---------- */
 function setGpsChip(state, txt) {
-    $('#myGpsChip').className = 'chip ' + state;
-    $('#myGpsLbl').textContent = txt;
+    const _gpsChip = $('#myGpsChip'), _gpsLbl = $('#myGpsLbl');
+    if (_gpsChip) _gpsChip.className = 'chip ' + state;
+    if (_gpsLbl) _gpsLbl.textContent = txt;
 }
 function rosterPos() {
     const me = getMe();
@@ -1294,7 +1357,7 @@ function startOwnWatch() {
             fetch(API_BASE + '/api/responder-location', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ responderId: me.id, lat: ME_POS.lat, lng: ME_POS.lng, name: me.name || me.id, role: me.role || '', status: me.status || 'available', updatedAt: new Date().toISOString() })
+                body: JSON.stringify({ responderId: me.id, lat: ME_POS.lat, lng: ME_POS.lng, accuracy: (ME_POS.acc || null), name: me.name || me.id, role: me.role || '', status: me.status || 'available', updatedAt: new Date().toISOString() })
             }).catch(() => {});
         }
         drawMine();
@@ -1390,7 +1453,6 @@ function refresh(key) {
     if (!getMe()) return;
     renderAvail(); renderHome(); renderCases(); renderComms(); renderProfile(); renderNotifBadge();
     if (key === 'map') paintCases();
-    else drawRoute();
 }
 function refreshAll() { refresh(currentScreen); }
 

@@ -104,12 +104,12 @@ body {
 /* ---------- topbar (matches dashboard .app-header exactly) ---------- */
 .topbar {
     display: flex;
-    align-items: center;
+    align-items: center;                   /* center eyebrow + bell on the same line (bar is compact) */
     justify-content: space-between;
     gap: 14px;
-    padding: 16px 30px 18px 30px;        /* slightly more top/bottom breathing than dashboard, since responder's eyebrow is smaller */
+    padding: 8px 30px 8px 30px;
     background: #ffffff;
-    min-height: 78px;
+    min-height: 54px;
 }
 /* Wrapper around eyebrow + title so they share a text baseline (mirrors dashboard .app-header > div:first-child) */
 .tb-left {
@@ -163,7 +163,7 @@ body {
 .bell {
     position: relative;
     flex: 0 0 auto;                      /* never squish */
-    width: 42px; height: 42px;
+    width: 34px; height: 34px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
@@ -173,9 +173,9 @@ body {
     transition: 0.2s ease;
 }
 .bell:hover { background: var(--soft-2); border-color: var(--line-2); color: var(--navy); }
-.bell svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.bell svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .bell .bcount {
-    position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px; padding: 0 5px;
+    position: absolute; top: -2px; right: -2px; min-width: 15px; height: 15px; padding: 0 4px;
     border-radius: 999px; background: var(--orange); color: #ffffff;
     font-size: 9.5px; font-weight: 700; line-height: 1;
     display: flex; align-items: center; justify-content: center;
@@ -185,10 +185,22 @@ body {
 
 /* ---------- screens / content ---------- */
 .stage {
+    /* --stage-pad-x is the single source of truth for the content gutter.
+     * The incident map uses the negative of it to bleed edge-to-edge, so
+     * changing the gutter here automatically keeps the full-bleed aligned
+     * across every breakpoint (desktop 30 / ≤500 20 / touch 22).
+     * --dock-reserve is how much of the phone's bottom edge is reserved
+     * for the nav pill; the map-screen's floating reporter card sits at
+     * `bottom: var(--dock-reserve)` so the sheet never slides underneath
+     * the dock. Value ≈ dock's own `bottom` offset + dock's height + a
+     * small visual gap. Adjusted per breakpoint below to match the dock's
+     * actual inset on narrow / touch layouts. */
+    --stage-pad-x: 30px;
+    --dock-reserve: 92px;
     flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 4px 30px 130px;             /* 30 px horizontal matches topbar so eyebrow + title align with cards below */
+    padding: 4px var(--stage-pad-x) 130px;   /* gutter matches topbar so eyebrow + title align with cards below */
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -229,33 +241,36 @@ body {
 .kpi.err   .k-ico { background: rgba(220,38,38,0.13);   color: var(--err); }
 
 /* ---------- availability ---------- */
-.avail-row { display: flex; gap: 10px; }
+.avail-row { display: flex; gap: 10px; justify-content: center; }
 .avail-btn {
-    flex: 1; height: 46px; border-radius: 14px; cursor: pointer;
-    background: rgba(16,45,92,0.04); border: 1px solid var(--line);
-    color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+    flex: 0 0 auto; min-height: 38px; padding: 0 16px; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(180deg, #ffffff, var(--soft));
+    border: 1px solid var(--line);
+    color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: 0.2s ease;
+    box-shadow: 0 1px 2px rgba(16,45,92,0.05);
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
 }
-.avail-btn .adot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.avail-btn:hover { color: var(--text); border-color: var(--line-2); }
-.avail-btn.sel { color: #ffffff; font-weight: 800; }
-.avail-btn[data-avail="available"].sel { background: var(--ok);   border-color: var(--ok); box-shadow: 0 6px 18px rgba(22,163,74,0.25); }
-.avail-btn[data-avail="busy"].sel      { background: var(--navy); border-color: var(--navy); box-shadow: 0 6px 18px rgba(16,45,92,0.28); }
-.avail-btn[data-avail="offline"].sel   { background: #64748b; border-color: #64748b; }
+.avail-btn:hover { color: var(--text); border-color: var(--line-2); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,45,92,0.08); }
+.avail-btn:active { transform: translateY(0) scale(.98); }
+.avail-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(16,45,92,0.18); }
+.avail-btn.sel { color: #ffffff; font-weight: 800; border-color: transparent; transform: translateY(-1px); }
+.avail-btn[data-avail="available"].sel { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 8px 20px rgba(22,163,74,0.32); }
+.avail-btn[data-avail="busy"].sel      { background: linear-gradient(135deg, #1d4ed8, #102d5c); box-shadow: 0 8px 20px rgba(16,45,92,0.34); }
+.avail-btn[data-avail="offline"].sel   { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: 0 8px 20px rgba(100,116,139,0.30); }
+.avail-btn[data-avail="available"].sel:hover { box-shadow: 0 10px 24px rgba(22,163,74,0.38); }
+.avail-btn[data-avail="busy"].sel:hover      { box-shadow: 0 10px 24px rgba(16,45,92,0.40); }
+.avail-btn[data-avail="offline"].sel:hover   { box-shadow: 0 10px 24px rgba(100,116,139,0.36); }
 
 /* ---------- incident cards ---------- */
 .inc-list { display: flex; flex-direction: column; gap: 12px; }
 .inc {
     background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
-    padding: 16px 18px 16px 22px; cursor: pointer; transition: 0.22s ease; position: relative; overflow: hidden;
+    padding: 16px 18px; cursor: pointer; transition: 0.22s ease; position: relative; overflow: hidden;
     box-shadow: 0 1px 3px rgba(16, 45, 92, 0.04);
 }
 .inc:hover { border-color: var(--navy-mid); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(16, 45, 92, 0.10); }
-.inc::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--navy); }
-.inc.t-critical::before { background: var(--err); }
-.inc.t-done::before     { background: var(--ok); }
-.inc.t-info::before     { background: var(--navy-mid); }
+/* Left accent stripe (blue/red bar beside the card) removed for a cleaner look. */
 .inc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
 /* ---------- incident type pill ---------- */
 .inc-type {
@@ -291,19 +306,67 @@ body {
 .seg button.sel .sn { background: rgba(255,255,255,0.28); }
 
 /* ---------- status stepper ---------- */
-.stepper { display: flex; align-items: center; gap: 0; margin: 4px 0 2px; }
-.step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; }
-.step::before { content: ''; position: absolute; top: 9px; left: -50%; width: 100%; height: 2px; background: var(--line-2); }
+.stepper {
+    display: flex; align-items: flex-start; gap: 0;
+    margin: 6px 0 0; padding: 14px 14px 12px;
+    border-radius: 16px; background: linear-gradient(135deg, #f8fafc 0%, var(--soft) 100%);
+    border: 1px solid var(--line);
+    overflow-x: auto; overflow-y: visible;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.stepper::-webkit-scrollbar { display: none; }
+.step {
+    flex: 1 0 0; min-width: 54px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    position: relative;
+}
+.step::before {
+    content: ''; position: absolute;
+    top: 11px; left: -50%; width: 100%; height: 3px;
+    border-radius: 3px; background: var(--line-2); z-index: 0;
+    transition: background .3s ease;
+}
 .step:first-child::before { display: none; }
-.step .sdot { width: 18px; height: 18px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line-2); z-index: 1; display: grid; place-items: center; }
-.step .sdot svg { width: 9px; height: 9px; stroke: #ffffff; stroke-width: 3; fill: none; }
-.step.done .sdot   { background: var(--ok); border-color: var(--ok); }
-.step.current .sdot{ background: var(--navy); border-color: var(--navy); box-shadow: 0 0 0 5px rgba(16,45,92,0.15); animation: stepPulse 1.6s ease-out infinite; }
+.step .sdot {
+    position: relative; z-index: 1;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #ffffff; border: 2.5px solid var(--line-2);
+    display: grid; place-items: center;
+    transition: transform .2s ease, background .25s ease, border-color .25s ease, box-shadow .25s ease;
+    box-shadow: 0 1px 3px rgba(16,45,92,0.07);
+}
+.step .sdot svg { width: 11px; height: 11px; stroke: #ffffff; stroke-width: 2.8; fill: none; }
+.step.done .sdot    { background: var(--ok); border-color: var(--ok); box-shadow: 0 3px 8px rgba(22,163,74,0.30); transform: scale(1.05); }
+.step.current .sdot { background: var(--navy); border-color: var(--navy); box-shadow: 0 0 0 5px rgba(16,45,92,0.13); animation: stepPulse 2s ease-out infinite; }
 .step.done::before, .step.current::before { background: var(--ok); }
-.step .slbl { font-size: 8.6px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); text-align: center; }
-.step.current .slbl { color: var(--navy); }
-.step.done .slbl    { color: var(--ok); }
-@keyframes stepPulse { 0% { box-shadow: 0 0 0 0 rgba(16,45,92,0.35); } 70% { box-shadow: 0 0 0 8px rgba(16,45,92,0); } 100% { box-shadow: 0 0 0 0 rgba(16,45,92,0); } }
+.step .slbl {
+    font-size: 8px; font-weight: 650; letter-spacing: .01em;
+    line-height: 1.3; text-transform: uppercase;
+    color: var(--muted); text-align: center; padding: 0 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%;
+    transition: color .25s ease;
+}
+.step.done .slbl    { color: var(--ok); font-weight: 700; }
+.step.current .slbl { color: var(--navy); font-weight: 750; }
+
+@media (max-width: 420px) {
+    .stepper { padding: 12px 8px 10px; }
+    .step { min-width: 46px; gap: 6px; }
+    .step .sdot { width: 19px; height: 19px; border-width: 2px; }
+    .step .sdot svg { width: 10px; height: 10px; }
+    .step::before { top: 9.5px; height: 2.5px; }
+    .step .slbl { font-size: 7.2px; }
+}
+@media (max-width: 340px) {
+    .stepper { padding: 10px 6px 8px; }
+    .step { min-width: 40px; gap: 5px; }
+    .step .sdot { width: 17px; height: 17px; }
+    .step .sdot svg { width: 9px; height: 9px; }
+    .step::before { top: 8.5px; height: 2px; }
+    .step .slbl { font-size: 6.5px; }
+}
+@keyframes stepPulse { 0% { box-shadow: 0 0 0 0 rgba(16,45,92,0.32); } 70% { box-shadow: 0 0 0 7px rgba(16,45,92,0); } 100% { box-shadow: 0 0 0 0 rgba(16,45,92,0); } }
 
 /* vertical timeline in case sheet */
 .tl { display: flex; flex-direction: column; }
@@ -380,8 +443,28 @@ body {
 .switch input:checked + .sl { background: var(--navy); border-color: var(--navy); }
 .switch input:checked + .sl::after { transform: translateX(18px); background: #ffffff; }
 
-/* ---------- map screen ---------- */
-.map-shell { display: flex; flex-direction: column; gap: 14px; }
+/* On the map screen we hide the topbar entirely — the "RescueNet · Dispatch"
+ * eyebrow and the topbar's white background are both removed so the map
+ * fills the entire available vertical space. We additionally collapse
+ * `.phone { padding-top: 24px }` (the desktop phone-frame's notch inset)
+ * and `.stage { padding-top: 4px }` (the stage's top gutter) so the map
+ * actually bleeds all the way up to the phone frame's top edge — on
+ * Android the outer padding is already 0 via media query, so this only
+ * makes a difference in the desktop preview, but keeps the two layouts
+ * visually consistent. Toggled via `body.map-fullscreen` from navigate()
+ * in responder.js. The dock pill + recenter FAB remain because they live
+ * inside the map screen, not the topbar. */
+body.map-fullscreen .topbar { display: none; }
+body.map-fullscreen .phone { padding-top: 0; }
+body.map-fullscreen .stage { padding-top: 0; }
+
+/* ---------- map screen (full-viewport map + draggable floating bottom sheet) ---------- */
+.map-shell {
+    position: relative;
+    height: 100%;
+    display: flex; flex-direction: column;
+    gap: 0;
+}
 .map-strip { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip {
     display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px;
@@ -394,36 +477,165 @@ body {
 .chip.searching .cdot { background: var(--amber); animation: gpsPulse 1s linear infinite; }
 .chip.searching { color: var(--amber); border-color: rgba(255,101,0,0.3); background: rgba(255,101,0,0.08); }
 @keyframes gpsPulse { 0% { box-shadow: 0 0 0 0 rgba(22,163,74,0.5); } 70% { box-shadow: 0 0 0 7px rgba(22,163,74,0); } 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); } }
-.map-box { position: relative; border-radius: 20px; overflow: hidden; border: 1px solid var(--line-2); }
-#respMap { width: 100%; height: 460px; }
+.map-box {
+    /* Full-bleed map fills the entire .map-shell via inset: 0. The reporter
+     * card is a sibling overlay anchored at the shell's bottom edge; dragging
+     * the sheet does NOT resize the map — the sheet just floats over more or
+     * less of the tiles. Leaflet's own size is therefore constant while the
+     * sheet moves, so no invalidateSize() is required during the gesture. */
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    /* Full-bleed incident map: cancel --stage-pad-x so tiles hit the left and
+     * right screen edges automatically at every breakpoint. No border/radius/shadow. */
+    margin-left:  calc(var(--stage-pad-x) * -1);
+    margin-right: calc(var(--stage-pad-x) * -1);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+}
+/* Strip the ≤500px `.screen { padding: 0 20px }` that responsive.css layers
+ * on top of --stage-pad-x. Attribute selector gives 0-1-1 specificity so it
+ * wins against the plain `.screen` rule regardless of stylesheet order.
+ * Fill the stage's content area AND extend past the stage's 130px bottom
+ * padding so the stacked sheet reaches the phone's true bottom edge and
+ * slides behind the dock pill (dock z-index 750 > sheet z-index 2). */
+.screen[data-screen="map"] {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    height: calc(100% + 130px);
+    /* overflow: visible (default) so the .map-box's negative side margins
+     * can bleed past this element's border-box to reach the phone edges. */
+}
+#respMap { width: 100%; height: 100%; }
 .leaflet-container { background: #e8eef5; font-family: inherit; }
 .map-fab {
-    position: absolute; right: 12px; z-index: 500; width: 38px; height: 38px; border-radius: 13px;
+    position: absolute; left: 12px; z-index: 800; width: 38px; height: 38px; border-radius: 13px;
     background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border: 1px solid var(--line-2);
     color: var(--text); display: grid; place-items: center; cursor: pointer; transition: 0.16s ease;
+    box-shadow: 0 4px 12px rgba(16,45,92,0.14);
 }
 .map-fab:hover { color: var(--navy); border-color: var(--navy-mid); }
 .map-fab svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.map-fab.fab-recenter { bottom: 12px; }
-.map-fab.fab-route    { bottom: 58px; }
-.map-fab.fab-route.on { color: var(--navy); border-color: var(--navy); background: var(--navy); }
-.map-fab.fab-route.on svg { color: #ffffff; }
-/* Solid shortest-path route line with subtle glow so it stands out on tiles */
-.resp-route-line {
-    filter: drop-shadow(0 0 3px rgba(255,101,0,0.55))
-            drop-shadow(0 1px 0 rgba(255,255,255,0.9));
-}
+/* Recenter fab stays in the top-left of the map so it never collides with
+ * the floating sheet at the bottom or the dock below it. */
+.map-fab.fab-recenter { top: 12px; bottom: auto; }
 
-/* ---------- reporter card (below the map) ---------- */
+/* ---------- reporter card (draggable sheet floating OVER the map) ---------- */
 .reporter-card {
+    /* Absolutely positioned overlay anchored above the dock (not at the
+     * phone's true bottom). The map behind it is `position: absolute;
+     * inset: 0` and never reflows during the drag, so Leaflet's tile
+     * canvas is stable throughout. Rounded top corners + upward shadow
+     * keep the bottom-sheet aesthetic. `bottom: var(--dock-reserve)`
+     * pins the sheet's own bottom edge just ABOVE the nav pill so the
+     * sheet's content (Call / Message buttons etc.) is never occluded
+     * by the dock. */
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--dock-reserve);
+    z-index: 20;
+    margin-left:  calc(var(--stage-pad-x) * -1);
+    margin-right: calc(var(--stage-pad-x) * -1);
     background: #ffffff;
-    border: 1px solid var(--line-2);
-    border-radius: 20px;
-    padding: 18px 20px;
-    display: flex; flex-direction: column; gap: 14px;
-    box-shadow: 0 8px 22px rgba(16,45,92,0.06);
+    border: 0;
+    /* Rounded top corners — straight bottom hugs the phone's bottom edge. */
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    /* Upward shadow so the sheet floats visibly above the map. */
+    box-shadow:
+        0 -14px 32px rgba(16, 45, 92, 0.20),
+        0 -3px 8px   rgba(16, 45, 92, 0.08);
+    height: 28%;        /* default snap position — small sheet so the map gets max real estate */
+    min-height: 8%;
+    max-height: 75%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    transition: height .32s cubic-bezier(.16, 1, .3, 1);
+    /* Scope layout / paint invalidation to the sheet so resizing during
+     * drag doesn't touch anything outside its own box. */
+    contain: layout style;
 }
 .reporter-card[hidden] { display: none; }
+/* Entry slide-in animation is intentionally gated behind `.entering` and
+ * only applied ONCE when the card transitions from hidden → visible (see
+ * refreshReporterCard in responder.js). It is NOT applied to the base
+ * rule, so removing `.dragging` at drag-end cannot re-trigger the keyframe.
+ * Previously the animation lived on the base rule and `.dragging` overrode
+ * it with `animation: none` — flipping that off made the browser see a
+ * new `animation-name` (none → sheetUp) and replay the entry, which looked
+ * like a bounce because the shared `sheetUp` keyframe was overwritten by
+ * a later `@keyframes sheetUp` used for modal sheets (translateY 60px →
+ * none). Renaming to `respSheetIn` and using the `.entering` class avoids
+ * both problems: no cascade collision, and drag-end never replays the key. */
+.reporter-card.entering {
+    animation: respSheetIn .32s cubic-bezier(.16, 1, .3, 1);
+}
+@keyframes respSheetIn {
+    from { transform: translateY(16px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+/* Suppress the snap transition while the pointer is actively dragging, and
+ * promote the sheet to its own compositor layer for buttery drag frames on
+ * low-end Android WebViews. Note: we do NOT set `animation: none` here —
+ * changing the animation-name property at drag-end is what previously
+ * caused the entry keyframe to replay. Because the entry animation lives
+ * only on `.entering` (never on the base rule), the drag class doesn't
+ * need to disable it and drag-end produces a clean transition. */
+.reporter-card.dragging {
+    transition: none;
+    will-change: height;
+}
+/* ---------- draggable handle: small gray rounded bar at the card's top center ----------
+ * A transparent hit-area wrapper (88×22px) sits absolutely at the card's
+ * top edge. The VISIBLE pill is a separate ::before pseudo-element (48×5px,
+ * fully rounded via border-radius: 999px). Using a pseudo-element rather
+ * than `background-clip: content-box` on the same div means the pill's
+ * corners are actually round — with background-clip the fill was confined
+ * to the sharp content-box rectangle and the rounded border-radius was
+ * never visible. Pointer handlers in responder.js read events on the
+ * wrapper, so the whole 88×22px region is grabbable with a thumb. */
+.sheet-handle {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 88px;
+    height: 22px;
+    z-index: 3;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;          /* pointer drag owns the vertical gesture */
+}
+.sheet-handle::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 6px;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 5px;
+    border-radius: 999px;        /* true rounded pill */
+    background: #6b7280;         /* gray-500 */
+    transition: background-color .18s ease;
+}
+.sheet-handle:hover::before { background-color: #4b5563; }    /* gray-600 */
+.sheet-handle:active::before,
+.reporter-card.dragging .sheet-handle::before {
+    background-color: #374151;   /* gray-700 — darkest during drag */
+}
+.sheet-handle:active,
+.reporter-card.dragging .sheet-handle { cursor: grabbing; }
+/* When the sheet is being dragged the whole card ignores its own scroll
+ * so the pointer stays with the handle even if the finger slips sideways
+ * onto the sheet body. */
+.reporter-card.dragging { pointer-events: none; }
+.reporter-card.dragging .sheet-handle { pointer-events: auto; }
 .rep-row { display: flex; align-items: center; gap: 14px; }
 .rep-avatar {
     width: 48px; height: 48px; border-radius: 15px; flex: 0 0 48px;
@@ -540,7 +752,10 @@ body {
 
 /* ---------- bottom dock (pill nav — matches dashboard .bottom-nav) ---------- */
 .dock {
-    position: absolute; left: 20px; right: 20px; bottom: 20px; z-index: 5;
+    position: absolute; left: 20px; right: 20px; bottom: 20px; z-index: 750;
+    /* Renders in front of the reporter sheet (z 700) so the sheet can slide
+     * all the way to the phone's bottom edge and disappear behind the nav
+     * pill while remaining fully functional (drag, scroll, tap). */
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;
     padding: 7px; border-radius: 22px;
     background: rgba(246, 249, 253, 0.98);
@@ -567,15 +782,15 @@ body {
 .dock-item:hover { color: var(--navy); background: var(--soft); }
 .dock-item.sel { color: var(--navy); background: rgba(16, 45, 92, 0.06); }
 .dock-item.sel svg { color: var(--navy); stroke-width: 2.2; transform: translateY(-1px); }
-.dock-item.sel::after {
-    content: ''; position: absolute; bottom: 3px;
-    width: 4px; height: 4px; border-radius: 50%;
-    background: var(--navy); box-shadow: 0 0 0 3px rgba(16, 45, 92, 0.16);
-}
 .dock-item .dcount { position: absolute; top: 2px; right: calc(50% - 17px); min-width: 15px; height: 15px; padding: 0 3px; border-radius: 999px; background: var(--err); color: #fff; font-size: 9px; font-weight: 800; display: grid; place-items: center; border: 2px solid #ffffff; }
 
 /* ---------- login ---------- */
-.login { position: absolute; inset: 0; z-index: 100; background: #ffffff; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 28px; overflow-y: auto; }
+/* z-index must be ABOVE the dock (750) so logging out cleanly hides every
+ * piece of app chrome behind the login card. Previously the login was at
+ * z-index 100 while the dock sat at 750, so the pill nav floated over the
+ * login screen after logout (the login form covered the topbar + stage,
+ * but not the dock). */
+.login { position: absolute; inset: 0; z-index: 900; background: #ffffff; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 28px; overflow-y: auto; }
 .login.show { display: flex; }
 .login-mark { width: 82px; height: 82px; border-radius: 26px; display: grid; place-items: center; background: linear-gradient(135deg, var(--navy), var(--navy-mid)); box-shadow: 0 20px 50px rgba(16,45,92,0.32); margin-bottom: 22px; animation: markFloat 4s ease-in-out infinite; }
 @keyframes markFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
@@ -691,7 +906,7 @@ body {
         padding: 6px;
     }
     .topbar { padding-left: 20px; padding-right: 20px; }
-    .stage { padding-left: 20px; padding-right: 20px; }
+    .stage { --stage-pad-x: 20px; --dock-reserve: 84px; }
 }
 
 /* ---------- responsive: real touch devices ---------- */
@@ -707,8 +922,8 @@ body {
         padding-left: env(safe-area-inset-left);
         padding-right: env(safe-area-inset-right);
     }
-    .topbar { padding: 20px 22px 16px 22px; min-height: 68px; gap: 12px; }
-    .stage { padding-left: 22px; padding-right: 22px; }
+    .topbar { padding: 8px 22px 8px 22px; min-height: 54px; gap: 12px; }
+    .stage { --stage-pad-x: 22px; --dock-reserve: 90px; }
     .dock {
         left: calc(18px + env(safe-area-inset-left));
         right: calc(18px + env(safe-area-inset-right));
@@ -719,26 +934,29 @@ body {
 /* Header tightening for narrow phones — keep the two text lines aligned
  * with the cards below while squeezing every available pixel. */
 @media (max-width: 420px) {
-    .topbar { padding: 18px 20px 14px 20px; min-height: 64px; gap: 12px; }
+    .topbar { padding: 10px 20px 8px 20px; min-height: 52px; gap: 12px; }
     .tb-left { gap: 4px; }
     .tb-left .tb-eyebrow { font-size: 9.5px; letter-spacing: 1.3px; margin-right: -1.3px; }
     .tb-left .tb-title   { font-size: 18px; }
-    .bell { width: 40px; height: 40px; }
+    .bell { width: 32px; height: 32px; }
     .bell .bcount { min-width: 16px; height: 16px; font-size: 9px; right: -2px; top: -2px; }
     .tb-chip { height: 30px; padding: 0 10px; font-size: 10.5px; }
 }
 @media (max-width: 340px) {
-    .topbar { padding: 16px 18px 12px 18px; min-height: 60px; gap: 10px; }
+    .topbar { padding: 8px 18px 6px 18px; min-height: 48px; gap: 10px; }
     .tb-left { gap: 3px; }
     .tb-left .tb-eyebrow { font-size: 9px; letter-spacing: 1.1px; margin-right: -1.1px; }
     .tb-left .tb-title   { font-size: 16.5px; }
-    .bell { width: 36px; height: 36px; }
+    .bell { width: 30px; height: 30px; }
     .bell svg { width: 15px; height: 15px; }
     .bell .bcount { min-width: 15px; height: 15px; font-size: 8.5px; right: -2px; top: -2px; }
     .tb-chip { height: 28px; padding: 0 9px; font-size: 10px; }
 }
 </style>
     <link rel="stylesheet" href="responsive.css">
+
+
+
 </head>
 <body>
 <div class="phone" id="phone">
@@ -769,10 +987,8 @@ body {
     <header class="topbar">
         <div class="tb-left">
             <div class="tb-eyebrow" id="tbEyebrow">RescueNet · Dispatch</div>
-            <div class="tb-title" id="tbTitle">On duty</div>
         </div>
         <div class="tb-right">
-            <div class="tb-chip" id="tbAvail" hidden><span class="tdot"></span><span id="tbAvailLbl">Available</span></div>
             <button class="bell" id="bellBtn" title="Notifications">
                 <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
                 <span class="bcount" id="notifCount" hidden>0</span>
@@ -785,12 +1001,12 @@ body {
         <!-- HOME / DASHBOARD -->
         <section class="screen active" data-screen="home">
             <div class="sec">
-                <div class="sec-head"><h2>Availability</h2><span class="hint">Used by the admin when assigning cases</span></div>
+                <div class="sec-head"><h2>Availability</h2></div>
                 <div class="card">
                     <div class="avail-row" id="availRow">
-                        <button class="avail-btn" data-avail="available"><span class="adot"></span>Available</button>
-                        <button class="avail-btn" data-avail="busy"><span class="adot"></span>On Task</button>
-                        <button class="avail-btn" data-avail="offline"><span class="adot"></span>Offline</button>
+                        <button class="avail-btn" data-avail="available">Available</button>
+                        <button class="avail-btn" data-avail="busy">On Task</button>
+                        <button class="avail-btn" data-avail="offline">Offline</button>
                     </div>
                 </div>
             </div>
@@ -841,23 +1057,16 @@ body {
         <!-- MAP -->
         <section class="screen" data-screen="map">
             <div class="map-shell">
-                <div class="map-strip">
-                    <span class="chip searching" id="myGpsChip"><span class="cdot"></span><span id="myGpsLbl">Acquiring GPS…</span></span>
-                    <span class="chip" id="mapCaseChip">📍 <span id="mapCaseCount">0</span> cases</span>
-                    <span class="chip" id="mapDistChip" hidden>→ <span id="mapDistLbl"></span></span>
-                </div>
                 <div class="map-box">
                     <div id="respMap"></div>
-                    <button class="map-fab fab-route" id="routeBtn" title="Show route to latest assignment">
-                        <svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M13 5h3a5 5 0 0 1 0 10H9a5 5 0 0 0 0 10h2"/></svg>
-                    </button>
                     <button class="map-fab fab-recenter" id="recenterBtn" title="Center on my location">
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
                     </button>
                 </div>
 
-                <!-- REPORTER / RESIDENT CARD -->
+                <!-- REPORTER / RESIDENT CARD (floating bottom sheet over the map) -->
                 <div class="reporter-card" id="reporterCard" hidden>
+                    <div class="sheet-handle" aria-hidden="true"></div>
                     <div class="rep-row">
                         <div class="rep-avatar" id="repAvatar">R</div>
                         <div class="rep-info">

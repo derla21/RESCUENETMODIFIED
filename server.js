@@ -747,17 +747,33 @@ app.delete('/api/resource/:id', (req, res) => {
 app.post('/api/responder-location', (req, res) => {
   const { responderId, lat, lng, updatedAt, name, role, status } = req.body || {};
   if (!responderId) return res.status(400).json({ ok: false });
+  const nLat = Number(lat), nLng = Number(lng);
+  if (!Number.isFinite(nLat) || !Number.isFinite(nLng)) {
+    return res.status(400).json({ ok: false, error: 'Valid lat and lng are required' });
+  }
+  const nAcc = Number(req.body && req.body.accuracy);
   const store = readStore();
   if (!store.responderLocations) store.responderLocations = {};
   store.responderLocations[responderId] = {
-    lat, lng,
+    lat: nLat, lng: nLng,
+    accuracy: Number.isFinite(nAcc) ? nAcc : undefined,
     updatedAt: updatedAt || new Date().toISOString(),
     name: name || undefined,
     role: role || undefined,
     status: status || undefined
   };
+  // Keep the roster record's coordinates in sync so rosterPos() / the admin map
+  // read the freshest precise GPS instead of the stale seed placeholder.
+  if (Array.isArray(store.responders)) {
+    const idx = store.responders.findIndex(r => String(r.id) === String(responderId));
+    if (idx >= 0) {
+      store.responders[idx].lat = nLat;
+      store.responders[idx].lng = nLng;
+      if (status) store.responders[idx].status = status;
+    }
+  }
   writeStore(store);
-  broadcast('responder_location', { responderId, lat, lng, updatedAt, name, role, status });
+  broadcast('responder_location', { responderId, lat: nLat, lng: nLng, updatedAt, name, role, status });
   res.json({ ok: true });
 });
 
