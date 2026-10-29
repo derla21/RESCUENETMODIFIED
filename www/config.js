@@ -9,8 +9,8 @@
      in a mobile browser so geolocation is allowed (Secure Context).
    Pages loaded over :3443 auto-detect their own origin and use HTTPS.
    ===================================================== */
-window.RN_SERVER = 'http://10.156.89.119:3000';
-window.RN_SERVER_SECURE = 'https://10.156.89.119:3443';
+window.RN_SERVER = 'http://192.168.43.119:3000';
+window.RN_SERVER_SECURE = 'https://192.168.43.119:3443';
 
 /* =====================================================
    REAL-TIME LONG-POLL (works through CapacitorHttp)
