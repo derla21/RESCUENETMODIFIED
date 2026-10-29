@@ -525,18 +525,20 @@ body.map-fullscreen .stage { padding-top: 0; }
 
 /* ---------- reporter card (draggable sheet floating OVER the map) ---------- */
 .reporter-card {
-    /* Absolutely positioned overlay anchored above the dock (not at the
-     * phone's true bottom). The map behind it is `position: absolute;
-     * inset: 0` and never reflows during the drag, so Leaflet's tile
-     * canvas is stable throughout. Rounded top corners + upward shadow
-     * keep the bottom-sheet aesthetic. `bottom: var(--dock-reserve)`
-     * pins the sheet's own bottom edge just ABOVE the nav pill so the
-     * sheet's content (Call / Message buttons etc.) is never occluded
-     * by the dock. */
+    /* Absolutely positioned overlay anchored to the shell's bottom edge (which
+     * equals the phone's true bottom, because the map-screen's height extends
+     * 130px past the stage's bottom padding). Dragging the sheet changes only
+     * the sheet's own height — the map beneath it is `position: absolute;
+     * inset: 0` and never reflows, so Leaflet's tile canvas is stable through
+     * the gesture. Rounded top corners + upward shadow keep the bottom-sheet
+     * aesthetic. The sheet's OWN bottom edge slides BEHIND the nav dock
+     * (dock z-index 750 > sheet z-index 20), so no strip of map peeks through
+     * between the sheet and the pill — visually the map only appears above
+     * the sheet's top edge. */
     position: absolute;
     left: 0;
     right: 0;
-    bottom: var(--dock-reserve);
+    bottom: 0;
     z-index: 20;
     margin-left:  calc(var(--stage-pad-x) * -1);
     margin-right: calc(var(--stage-pad-x) * -1);
