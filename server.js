@@ -526,16 +526,70 @@ app.post('/api/resident', (req, res) => {
     (resident.phone && r.phone && r.phone.replace(/\s/g,'') === resident.phone.replace(/\s/g,'')) ||
     (resident.email && r.email && r.email.toLowerCase() === resident.email.toLowerCase())
   );
-  // New residents always start as 'pending' until a barangay official approves them.
-  // If the client sent an explicit status (rare), honour it; otherwise default.
-  const withStatus = { ...resident, status: resident.status || 'pending', registeredAt: resident.registeredAt || new Date().toISOString() };
-  if (exists >= 0) list[exists] = { ...list[exists], ...withStatus, status: list[exists].status || withStatus.status };
-  else list.unshift(withStatus);
+  /* SECURITY + APPROVAL WORKFLOW
+   * ---------------------------------------------------------------
+   * This endpoint is called from the resident's own device (browser
+   * / Capacitor APK) during registration. We MUST NOT trust a
+   * client-supplied `status` — a stale build, a crafted fetch, or a
+   * copy/paste of an approved record could otherwise self-approve an
+   * account and skip the barangay-admin review step. The ONLY
+   * endpoints that can write 'approved' or 'rejected' are
+   * POST /api/resident/:id/approve and /api/resident/:id/reject,
+   * both of which are called from the admin console.
+   *
+   * Status decision on POST /api/resident:
+   *   new record                 → 'pending'   (enter admin queue)
+   *   existing 'pending'         → 'pending'   (idempotent re-POST)
+   *   existing 'approved'        → 'approved'  (never silently undo
+   *                                             an admin approval by
+   *                                             re-submitting the
+   *                                             form)
+   *   existing 'rejected'        → 'pending'   (resident has
+   *                                             re-registered after a
+   *                                             rejection: the record
+   *                                             MUST go back into the
+   *                                             admin's verification
+   *                                             queue so it can be
+   *                                             re-reviewed. This was
+   *                                             the cause of the
+   *                                             reported "auto denied
+   *                                             even though the admin
+   *                                             didn't reject it"
+   *                                             bug — a stale
+   *                                             'rejected' status in
+   *                                             rescueNet-sync.json
+   *                                             was silently preserved
+   *                                             across re-registrations.)
+   *   existing anything else     → 'pending'   (defensive default)
+   */
+  const existingStatus = exists >= 0
+    ? String(list[exists].status || '').toLowerCase()
+    : '';
+  const finalStatus = existingStatus === 'approved' ? 'approved' : 'pending';
+  const withStatus = {
+    ...resident,
+    status: finalStatus,
+    registeredAt: resident.registeredAt || new Date().toISOString()
+  };
+  if (exists >= 0) {
+    /* Wipe any stale rejectedAt / rejectedReason so the record reads
+     * cleanly as a fresh pending request in the admin UI. Keep
+     * approvedAt only when we are preserving an approved record. */
+    const merged = { ...list[exists], ...withStatus, status: finalStatus };
+    if (finalStatus === 'pending') {
+      delete merged.rejectedAt;
+      delete merged.rejectedReason;
+      delete merged.approvedAt;
+    }
+    list[exists] = merged;
+  } else {
+    list.unshift(withStatus);
+  }
   store.residents = list;
   writeStore(store);
-  broadcast('resident_registered', withStatus);
-  console.log('[RESIDENT POST] saved + broadcast OK. Total residents:', list.length, '· status:', withStatus.status);
-  res.json({ ok: true, resident: withStatus });
+  broadcast('resident_registered', list[exists >= 0 ? exists : 0]);
+  console.log('[RESIDENT POST] saved + broadcast OK. Total residents:', list.length, '· status:', finalStatus, '(was:', existingStatus || '<new>', ')');
+  res.json({ ok: true, resident: list[exists >= 0 ? exists : 0] });
 });
 
 /* ---- Resident approval status lookup (used by index.html login gate) ---- */
@@ -555,6 +609,7 @@ app.get('/api/resident/status', (req, res) => {
     resident: {
       id: match.id, firstName: match.firstName, lastName: match.lastName,
       email: match.email, phone: match.phone,
+      facialDataUrl: match.facialDataUrl || '',
       approvedAt: match.approvedAt || null, rejectedAt: match.rejectedAt || null
     }
   });

@@ -4659,17 +4659,28 @@ function startRealtime() {
             try {
                 const r = JSON.parse(ev.data);
                 const list = lsGet(STORE.residents, []);
-                const isNew = !list.find(x => x.id === r.id || (x.phone && r.phone && x.phone.replace(/\s/g,'') === r.phone.replace(/\s/g,'')));
-                if (isNew) {
-                    list.unshift(r);
-                    lsSet(STORE.residents, list);
-                    ingestVerificationFromResident(r);
-                    refreshCounts();
-                    refreshMiniMap();
-                    const active = document.querySelector('.screen.active');
-                    if (active) render(active.dataset.screen);
-                    toast('👤 New resident registered: ' + (r.firstName || '') + ' ' + (r.lastName || ''));
-                }
+                const idx = list.findIndex(x => x.id === r.id || (x.phone && r.phone && x.phone.replace(/\s/g,'') === r.phone.replace(/\s/g,'')));
+                /* ALWAYS upsert (not just when new) and ALWAYS attempt
+                 * ingest. Previously we skipped both when the record
+                 * already existed locally, which meant a resident who
+                 * had been rejected and then re-registered (server
+                 * status flipped back to 'pending') didn't surface in
+                 * the admin's Verification queue until the next
+                 * pullRemote tick — or not at all if the fetch failed.
+                 * ingestVerificationFromResident is idempotent (it
+                 * dup-checks by residentId + email + phone and
+                 * respects the reviewed marker), so unconditional call
+                 * is safe. */
+                if (idx >= 0) list[idx] = Object.assign({}, list[idx], r);
+                else list.unshift(r);
+                lsSet(STORE.residents, list);
+                const st = String(r.status || '').toLowerCase();
+                if (!st || st === 'pending' || st === 'new') ingestVerificationFromResident(r);
+                refreshCounts();
+                refreshMiniMap();
+                const active = document.querySelector('.screen.active');
+                if (active) render(active.dataset.screen);
+                if (idx < 0) toast('👤 New resident registered: ' + (r.firstName || '') + ' ' + (r.lastName || ''));
             } catch(e){}
         });
 
@@ -4810,19 +4821,54 @@ function startRealtime() {
             if (rr.ok) {
                 const remote = await rr.json();
                 const local = lsGet(STORE.residents, []);
-                (Array.isArray(remote) ? remote : []).forEach(r => {
-                    if (r.id && !local.find(x => x.id === r.id)) {
-                        local.unshift(r);
+                const remoteArr = Array.isArray(remote) ? remote : [];
+                /* Upsert remote into local. Server is authoritative for `status`
+                 * — an admin approving a resident from a different device (or
+                 * the /approve endpoint on the server) must be reflected here
+                 * so the login gate on this admin's own view agrees with the
+                 * server. We still preserve fields the server doesn't own
+                 * (documentDataUrl is sometimes stripped from list payloads). */
+                remoteArr.forEach(r => {
+                    if (!r || !r.id) return;
+                    const idx = local.findIndex(x => x.id === r.id);
+                    if (idx < 0) { local.unshift(r); anyChange = true; }
+                    else if (String(local[idx].status || '') !== String(r.status || '')) {
+                        local[idx] = Object.assign({}, local[idx], r);
                         anyChange = true;
-                        if (ingestVerificationFromResident(r)) anyChange = true;
                     }
                 });
                 lsSet(STORE.residents, local);
-                // Also back-fill verification for residents that were already local
-                // but never had a verification entry (first time this feature lands).
-                (Array.isArray(remote) ? remote : []).forEach(r => {
-                    if (r.id && ingestVerificationFromResident(r)) anyChange = true;
-                });
+                /* Verification back-fill is intentionally NOT done here —
+                 * see the unconditional pass below the residents block.
+                 * Doing it inside the try meant an offline server fetch
+                 * also skipped the local ingest, which made the admin's
+                 * Verification queue look empty even though pending
+                 * residents were present in this device's own
+                 * localStorage. */
+            }
+        } catch(e){}
+        /* UNCONDITIONAL local verification ingest — runs whether or not
+         * the server fetch above succeeded. Walks the admin's own
+         * STORE.residents and creates a queue row for every pending /
+         * new / status-missing account that doesn't already have one.
+         * This is the fix for the reported "after registration it does
+         * not appear in the admin's verification section" bug: if the
+         * admin's device had a resident in localStorage but the server
+         * was momentarily unreachable, the queue stayed empty. The
+         * function itself is idempotent (dup-checks by residentId +
+         * email + phone), so running it on every 4 s poll is safe. */
+        try {
+            const localR = lsGet(STORE.residents, []);
+            (Array.isArray(localR) ? localR : []).forEach(r => {
+                if (!r || !r.id) return;
+                const st = String(r.status || '').toLowerCase();
+                if (st && st !== 'pending' && st !== 'new') return;
+                if (ingestVerificationFromResident(r)) anyChange = true;
+            });
+            if (anyChange) {
+                const active = document.querySelector('.screen.active');
+                if (active && (active.dataset.screen === 'verification' || active.dataset.screen === 'residents')) render(active.dataset.screen);
+                refreshCounts();
             }
         } catch(e){}
         // Households

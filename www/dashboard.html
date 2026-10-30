@@ -127,32 +127,32 @@
         /* ---------- HEADER ---------- */
         .app-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
-            gap: 14px;
-            padding: 14px 30px 16px 30px;        /* 30 px horizontal to sit well inside the 50 px rounded frame */
+            gap: 12px;
+            padding: 4px 30px 8px 30px;
             background: #ffffff;
-            min-height: 72px;
+            min-height: 42px;
         }
         /* Wrapper around eyebrow + username so they share a text baseline */
         .app-header > div:first-child {
             flex: 1 1 auto;
-            min-width: 0;                    /* allow ellipsis on the child */
+            min-width: 0;
             display: flex;
             flex-direction: column;
-            align-items: stretch;            /* children fill parent width so ellipsis actually triggers */
-            justify-content: center;
-            gap: 2px;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 1px;
         }
 
         .eyebrow {
             color: var(--muted);
-            font-size: 10.5px;
+            font-size: 9px;
             font-weight: 600;
-            letter-spacing: 1.4px;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
-            line-height: 1.1;
-            margin-right: -1.4px;            /* cancel trailing letter-space */
+            line-height: 1;
+            margin-right: -1.2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -161,21 +161,21 @@
 
         .username {
             color: var(--navy);
-            font-size: 19px;
+            font-size: 15px;
             font-weight: 700;
-            letter-spacing: -0.35px;
-            line-height: 1.15;
-            width: 100%;                     /* fill parent so overflow measurement works */
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+            width: 100%;
             max-width: 100%;
-            min-width: 0;                    /* allow shrinking inside flex-column */
+            min-width: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .profile-chip {
-            flex: 0 0 auto;                  /* never squish the chip */
-            width: 42px; height: 42px;
+            flex: 0 0 auto;
+            width: 28px; height: 28px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
@@ -183,32 +183,49 @@
             background: var(--soft);
             color: var(--navy);
             border: 1px solid var(--line);
-            font-size: 13px;
+            font-size: 10px;
             font-weight: 700;
             letter-spacing: -0.2px;
             cursor: pointer;
             position: relative;
             padding: 0;
+            overflow: hidden;
         }
+
+        /* Face-verification photo fills the chip as a circular avatar.
+           Hidden when absent; initials span falls back behind it. */
+        .profile-chip .chip-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: none;
+            background: var(--soft);
+        }
+        .profile-chip.has-photo .chip-img { display: block; }
+        .profile-chip.has-photo #profileInitials { display: none; }
 
         .profile-chip:hover { background: var(--soft-2); }
 
         .profile-chip .dot {
             position: absolute;
-            right: -3px; top: -3px;
-            min-width: 17px; height: 17px;
-            padding: 0 5px;
+            right: -2px; top: -2px;
+            min-width: 13px; height: 13px;
+            padding: 0 3px;
             border-radius: 999px;
             background: var(--orange);
             color: #fff;
-            font-size: 9.5px;
+            font-size: 7.5px;
             font-weight: 700;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #ffffff;
-            box-shadow: 0 1px 3px rgba(16,45,92,0.18);
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 1px 2px rgba(16,45,92,0.16);
+            z-index: 2;
         }
 
         /* ---------- CONTENT / SCREENS ---------- */
@@ -473,42 +490,37 @@
         .pill.warn.active   { background: var(--warn); border-color: var(--warn); }
         .pill.missing.active { background: var(--err); border-color: var(--err); }
 
-        /* ---------- BOTTOM NAV (elevated pill style) ---------- */
+        /* ---------- BOTTOM NAV (compact centered pill) ---------- */
         .bottom-nav {
             position: absolute;
-            left: 20px;
-            right: 20px;
-            bottom: 20px;
-            padding: 5px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-            /* Slightly tinted off-white so the pill visibly differs from the
-             * pure-white .content area behind it (was rgba(255,255,255,0.92)
-             * which is indistinguishable from the white app background). */
-            background: rgba(246, 249, 253, 0.98);
-            /* Stronger, thicker border (22% navy vs the previous 10%) so the
-             * pill's rounded edge reads clearly on small phone screens. */
-            border: 1.5px solid rgba(16, 45, 92, 0.22);
-            border-radius: 18px;
-            /* Layered shadow: tight contact shadow + soft elevation shadow.
-             * Much stronger than before so the pill floats visibly above the
-             * content even without relying on backdrop-filter. */
+            left: 0;
+            right: 0;
+            bottom: 16px;
+            margin: 0 auto;
+            width: calc(100% - 96px);
+            max-width: 290px;
+            padding: 5px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 2px;
+            background: rgba(248, 250, 254, 0.97);
+            border: 1px solid rgba(16, 45, 92, 0.14);
+            border-radius: 34px;
             box-shadow:
-                0 0 0 1px rgba(255, 255, 255, 0.9) inset,   /* inner top highlight */
-                0 2px 4px  rgba(16, 45, 92, 0.10),           /* contact shadow */
-                0 8px 22px rgba(16, 45, 92, 0.16);           /* elevation shadow */
-            backdrop-filter: saturate(180%) blur(16px);
-            -webkit-backdrop-filter: saturate(180%) blur(16px);
+                0 0 0 1px rgba(255, 255, 255, 0.85) inset,
+                0 1px 3px  rgba(16, 45, 92, 0.08),
+                0 6px 20px rgba(16, 45, 92, 0.13);
+            backdrop-filter: saturate(180%) blur(14px);
+            -webkit-backdrop-filter: saturate(180%) blur(14px);
             z-index: 5;
         }
 
         .nav-tab {
             position: relative;
-            /* No border on the individual tab — only the outer pill has one. */
             border: none;
             background: transparent;
-            padding: 5px 3px 4px;
+            padding: 6px 14px 5px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -516,76 +528,72 @@
             justify-content: center;
             gap: 3px;
             color: var(--muted);
-            font-size: 8.5px;
+            font-size: 8px;
             font-weight: 600;
-            letter-spacing: 0.3px;
-            border-radius: 12px;
-            transition: color 0.22s ease,
-                        background-color 0.22s ease,
-                        box-shadow 0.22s ease;
+            letter-spacing: 0.2px;
+            border-radius: 14px;
+            transition: color 0.2s ease, background-color 0.2s ease;
         }
 
         .nav-tab .nav-ico {
-            width: 28px; height: 20px;
+            width: 28px; height: 22px;
             border-radius: 999px;
             display: grid;
             place-items: center;
-            transition: background-color 0.22s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 0.2s ease;
         }
         .nav-tab svg {
-            width: 17px; height: 17px;
+            width: 18px; height: 18px;
             stroke-width: 1.7;
-            transition: stroke-width 0.22s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: color 0.2s ease, stroke-width 0.2s ease;
         }
 
         .nav-tab:hover:not(.active) {
             color: var(--navy);
-            background: var(--soft);
         }
 
+        /* Active tab: minimal — subtle warm tint + accent icon, no lift/shadow. */
         .nav-tab.active {
             color: var(--navy);
-            /* Only a soft tinted background on the active tab — no border. */
-            background: rgba(255, 101, 0, 0.08);
+            font-weight: 700;
+            background: rgba(255, 101, 0, 0.06);
         }
         .nav-tab.active .nav-ico {
-            background: rgba(255, 101, 0, 0.14);
+            background: transparent;
         }
         .nav-tab.active svg {
             color: var(--orange);
-            stroke-width: 2.2;
-            transform: translateY(-1px);
+            stroke-width: 2;
         }
-        .nav-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            width: 3px; height: 3px;
-            border-radius: 50%;
-            background: var(--orange);
-            box-shadow: 0 0 0 2px rgba(255, 101, 0, 0.16);
-        }
-        .nav-tab.danger.active .nav-ico { background: rgba(220, 38, 38, 0.14); }
-        .nav-tab.danger.active svg { color: var(--err); }
-        .nav-tab.danger.active::after { background: var(--err); box-shadow: 0 0 0 3px rgba(220,38,38,0.16); }
 
-        /* SOS: small rounded-rectangle badge with “SOS” text, center of the dock */
+        .nav-tab.danger.active {
+            background: rgba(220, 38, 38, 0.06);
+        }
+        .nav-tab.danger.active .nav-ico {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            box-shadow: 0 3px 10px rgba(220, 38, 38, 0.32);
+        }
+        .nav-tab.danger.active .nav-ico svg { color: #ffffff; stroke: #ffffff; }
+
+
+        /* SOS: circular red badge with siren icon, center of the dock */
         .nav-tab.danger .nav-ico {
-            width: 40px; height: 26px;
-            border-radius: 8px;
-            background: var(--err);
+            width: 32px; height: 32px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             border: 1.5px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.36);
-            outline: 1.5px solid rgba(220, 38, 38, 0.30);
-            outline-offset: 2px;
+            box-shadow:
+                0 3px 10px rgba(220, 38, 38, 0.32),
+                0 0 0 1px rgba(220, 38, 38, 0.10);
             color: #ffffff;
-            font-size: 11.5px;
-            font-weight: 800;
-            letter-spacing: 1px;
             line-height: 1;
             display: grid;
             place-items: center;
-            transition: background-color 0.22s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease;
+            transition: background-color 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+        }
+        .nav-tab.danger .nav-ico svg {
+            width: 17px; height: 17px;
+            stroke-width: 2;
         }
         .nav-tab.danger:not(.active) {
             color: var(--err);
@@ -603,20 +611,20 @@
             outline-color: rgba(220, 38, 38, 0.48);
         }
 
-        /* Narrow viewports: keep the pill style intact — only tighten the
-         * outer clearance slightly. Do NOT kill border-radius or the 3-side
-         * border, or the pill collapses into a flat strip with no visible
-         * rounded edge (this was the source of the "can't see the border
-         * of the 5 nav bar" issue on real phones). */
+        /* Narrow viewports: slightly tighter sizing while preserving
+         * the compact pill shape. */
         @media (max-width: 500px) {
             .bottom-nav {
-                left: 14px;
-                right: 14px;
                 bottom: 14px;
-                /* Preserve the floating pill: keep rounded corners + full border + elevation shadow */
-                border-radius: 18px;
-                border: 1.5px solid rgba(16, 45, 92, 0.22);
-                padding: 4px;
+                width: calc(100% - 80px);
+                max-width: none;
+                padding: 5px 6px;
+                gap: 1px;
+                border-radius: 30px;
+                border: 1px solid rgba(16, 45, 92, 0.14);
+            }
+            .nav-tab {
+                padding: 5px 12px 5px;
             }
         }
 
@@ -720,12 +728,12 @@
         .rn-tap .rn-ripple {
             position: absolute;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 101, 0, 0.12);
             transform: scale(0);
-            animation: rnRipple 0.6s ease-out;
+            animation: rnRipple 0.5s ease-out forwards;
             pointer-events: none;
         }
-        @keyframes rnRipple { to { transform: scale(2.6); opacity: 0; } }
+        @keyframes rnRipple { to { transform: scale(2.4); opacity: 0; } }
 
         @keyframes rnPageIn {
             from { opacity: 0; transform: translateY(6px); }
@@ -1393,34 +1401,30 @@
             /* Reclaim horizontal space so content fits a 360–412 px phone */
             .content { padding: 4px 22px 96px; }
             .app-header {
-                padding: 18px 22px 14px 22px;
-                min-height: 64px;
-                gap: 12px;
+                padding: 4px 22px 6px 22px;
+                min-height: 38px;
+                gap: 10px;
             }
-            /* Bottom nav should float INSIDE the notch / home-indicator safe zones
-             * and keep enough clearance so its rounded corners and border are
-             * fully visible on real phones (was 8 px, which looked attached). */
+            /* Bottom nav: centered via margin:auto, only bottom needs safe-area. */
             .bottom-nav {
-                left: calc(18px + env(safe-area-inset-left));
-                right: calc(18px + env(safe-area-inset-right));
-                bottom: calc(18px + env(safe-area-inset-bottom));
+                bottom: calc(16px + env(safe-area-inset-bottom));
             }
         }
 
         /* Header tightening for narrow phones — keep the two text lines aligned
            with the profile chip and never let a long name push the chip off. */
         @media (max-width: 420px) {
-            .app-header { padding: 16px 20px 12px 20px; min-height: 62px; gap: 12px; }
-            .eyebrow { font-size: 9.5px; letter-spacing: 1.15px; margin-right: -1.15px; }
-            .username { font-size: 17px; }
-            .profile-chip { width: 40px; height: 40px; font-size: 12.5px; }
+            .app-header { padding: 3px 20px 5px 20px; min-height: 36px; gap: 10px; }
+            .eyebrow { font-size: 8.5px; letter-spacing: 1px; margin-right: -1px; }
+            .username { font-size: 14px; }
+            .profile-chip { width: 26px; height: 26px; font-size: 9.5px; }
         }
         @media (max-width: 340px) {
-            .app-header { padding: 14px 18px 10px 18px; min-height: 58px; gap: 10px; }
-            .eyebrow { font-size: 9px; letter-spacing: 1px; margin-right: -1px; }
-            .username { font-size: 15.5px; }
-            .profile-chip { width: 36px; height: 36px; font-size: 11.5px; }
-            .profile-chip .dot { min-width: 15px; height: 15px; font-size: 8.5px; right: -2px; top: -2px; }
+            .app-header { padding: 3px 18px 4px 18px; min-height: 34px; gap: 8px; }
+            .eyebrow { font-size: 8px; letter-spacing: 0.9px; margin-right: -0.9px; }
+            .username { font-size: 13px; }
+            .profile-chip { width: 24px; height: 24px; font-size: 9px; }
+            .profile-chip .dot { min-width: 12px; height: 12px; font-size: 7px; right: -2px; top: -2px; }
         }
 
         /* =====================================================
@@ -1893,6 +1897,7 @@
             <div class="username" id="username">Resident</div>
         </div>
         <button class="profile-chip" data-tab="profile" id="profileChip" aria-label="Open profile">
+            <img class="chip-img" id="profileChipImg" alt="" />
             <span id="profileInitials">SD</span>
             <span class="dot" id="notifBadge">2</span>
         </button>
@@ -1929,12 +1934,6 @@
 
             <div class="sec-title"><h2>Quick Actions</h2></div>
             <div class="grid-2">
-                <div class="qa-tile danger" data-tab="sos">
-                    <div class="qa-ico">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2-1.4 5.6L6 6l1.6 5.4L2 14l5.4 1.4L6 21l5.4-3.4L12 22l.6-4.4 5.4 3.4-1.6-5.6L22 14l-5.4-2.6L18 6l-4.6 1.6z"/></svg>
-                    </div>
-                    <div class="name">Send SOS</div>
-                </div>
                 <div class="qa-tile" data-tab="report">
                     <div class="qa-ico">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg>
@@ -1958,12 +1957,6 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9A10 10 0 0 1 8 11"/><path d="M20 12.9a10 10 0 0 0-4.93-5.39"/><path d="M15 16.75a2 2 0 0 1 2.5.06"/><path d="M22 8c-1-1.5-3-3.5-5-4.5"/><path d="M2 8c1.5-2 4.5-4.5 8-4.5"/><circle cx="12" cy="20" r="1"/></svg>
                     </div>
                     <div class="name">Offline Toolkit</div>
-                </div>
-                <div class="qa-tile" data-tab="notifications">
-                    <div class="qa-ico">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-                    </div>
-                    <div class="name">Notifications</div>
                 </div>
             </div>
 
@@ -2624,13 +2617,11 @@
 
     </div>
 
-    <!-- BOTTOM NAV
-         Report and Guides were removed from this bar (they were
-         redundant with the Home-screen Quick Actions tiles) so only
-         Home / SOS / Profile remain. The Report and Guides screens
-         themselves still exist and are still reachable through the
-         Quick Actions tiles which use data-tab="report" and
-         data-tab="guides". -->
+    <!-- BOTTOM NAV (3 tabs: Home / SOS / Profile)
+         Household and Report are reached through the Home-screen
+         Quick Actions tiles (data-tab="household" /
+         data-tab="report") — they are secondary actions rather
+         than persistent navigation destinations. -->
     <nav class="bottom-nav" aria-label="Primary">
         <button class="nav-tab active" data-tab="home">
             <span class="nav-ico">
@@ -2639,7 +2630,10 @@
             Home
         </button>
         <button class="nav-tab danger" data-tab="sos">
-            <span class="nav-ico">SOS</span>
+            <span class="nav-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18v-6a5 5 0 0 1 10 0v6"/><path d="M5 21h14"/><path d="M12 2v1"/><path d="M20 6.5 21 5.5"/><path d="M4 6.5 3 5.5"/><path d="M22 12h-1"/><path d="M3 12H2"/></svg>
+            </span>
+            SOS
         </button>
         <button class="nav-tab" data-tab="profile">
             <span class="nav-ico">
@@ -2759,6 +2753,10 @@
                         localStorage.setItem('rn_residents', JSON.stringify(list));
                     }
                 } catch (e) {}
+                /* Refresh profile chip in case the server returned a
+                   facialDataUrl that wasn't present in the local record
+                   (e.g. user registered on another device). */
+                try { loadProfile(); } catch (e) {}
                 /* pass — allow the rest of the dashboard boot */
                 return;
             }
@@ -2788,7 +2786,7 @@
         screens.forEach(s => s.classList.remove('active'));
         target.classList.add('active');
 
-        const mainTabs = ['home', 'sos', 'report', 'guides', 'profile'];
+        const mainTabs = ['home', 'sos', 'profile'];
         document.querySelectorAll('.nav-tab').forEach(t => {
             t.classList.toggle('active', mainTabs.includes(tab) && t.dataset.tab === tab);
         });
@@ -2864,7 +2862,41 @@
             document.getElementById('profileMobile').textContent = user.phone || '—';
             document.getElementById('profileInitials').textContent = initials;
             document.getElementById('profileAvatar').textContent = initials;
+
+            /* Resolve face-verification selfie. The session user object
+               set by index.html login only stores id/name/email/phone, so
+               we look up the full resident record in rn_residents by
+               email or id — facial.html writes facialDataUrl there during
+               registration. If not present locally we simply fall back to
+               the initials; no partial state is rendered. */
+            let selfie = user.facialDataUrl || '';
+            if (!selfie) {
+                try {
+                    const list = JSON.parse(localStorage.getItem('rn_residents') || '[]');
+                    const email = String(user.email || '').toLowerCase();
+                    const phone = String(user.phone || '');
+                    const match = list.find(r =>
+                        (email && String(r.email || '').toLowerCase() === email) ||
+                        (phone && String(r.phone || '') === phone) ||
+                        (user.id && r.id === user.id)
+                    );
+                    if (match && match.facialDataUrl) selfie = match.facialDataUrl;
+                } catch(e){}
+            }
+            applyProfilePhoto(selfie);
         }
+    }
+
+    /* Sets the profile chip avatar from a data-URL or absolute URL.
+       Empty/failed loads fall back silently to the initials. */
+    function applyProfilePhoto(url) {
+        const chip = document.getElementById('profileChip');
+        const img  = document.getElementById('profileChipImg');
+        if (!chip || !img) return;
+        if (!url) { chip.classList.remove('has-photo'); img.removeAttribute('src'); return; }
+        img.onload  = function () { chip.classList.add('has-photo'); };
+        img.onerror = function () { chip.classList.remove('has-photo'); img.removeAttribute('src'); };
+        img.src = url;
     }
     loadProfile();
 
@@ -3722,40 +3754,123 @@
 
     async function initSosPermission() {
         const state = await checkLocationPermission();
+        const isNative = !!(window.RNLocation && RNLocation.isNative);
+        const enableBtn   = document.getElementById('permEnableBtn');
         const settingsBtn = document.getElementById('permSettingsBtn');
+        const skipBtn     = document.getElementById('permSkipBtn');
         if (settingsBtn) settingsBtn.style.display = 'none';
+        if (skipBtn)     skipBtn.style.display     = '';
+        if (enableBtn)   enableBtn.style.display    = '';
 
+        /* 1. Device doesn't expose any geolocation API at all. */
+        if (state === 'unsupported') {
+            setBanner(
+                'denied',
+                'Location not available',
+                'This device or browser does not expose GPS. You can still type the incident address manually.',
+                true
+            );
+            if (enableBtn) enableBtn.style.display = 'none';
+            return;
+        }
+
+        /* 2. Already granted — skip straight to reading GPS. */
         if (state === 'granted') {
             onPermissionGranted(false);
             return;
         }
-        if (state === 'denied') {
-            onPermissionDenied({ code: 1 });
-            return;
-        }
-        // 'prompt'
-        const isNative = !!(window.RNLocation && RNLocation.isNative);
+
+        /* 3. Native (Android/iOS): fire the system dialog for BOTH 'prompt'
+         *    and 'denied'. Android reports 'denied' after the user dismisses
+         *    the popup even when it can still be re-requested — so the pre-
+         *    check alone is not accurate. The plugin call is a no-op when the
+         *    OS has truly blocked re-asking, and we re-check afterwards to
+         *    distinguish permanent block from a fresh dismissal. */
         if (isNative) {
-            // Emergency UX: fire the Android permission dialog immediately so the
-            // user doesn't have to tap an extra button. Falls through to denial UI.
             setBanner(
                 '',
-                'Waiting for your answer…',
-                'Android is asking for location access. Tap “While using the app” so responders can find you.',
+                'Waiting for your answer\u2026',
+                'Android is asking for location access. Tap \u201cWhile using the app\u201d so responders can find you.',
                 true
             );
-            const btn = document.getElementById('permEnableBtn');
-            if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; btn.lastChild.textContent = ' Waiting… '; }
+            if (enableBtn) {
+                enableBtn.disabled = true;
+                enableBtn.style.opacity = '0.7';
+                enableBtn.lastChild.textContent = ' Waiting\u2026 ';
+            }
+
+            let granted = false;
+            let requestErr = null;
             try {
                 await requestLocationPermission();
-                onPermissionGranted(true);
+                granted = true;
             } catch (err) {
-                onPermissionDenied(err);
+                requestErr = err;
             } finally {
-                if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.lastChild.textContent = ' Allow Location '; }
+                if (enableBtn) {
+                    enableBtn.disabled = false;
+                    enableBtn.style.opacity = '';
+                    enableBtn.lastChild.textContent = ' Allow Location ';
+                }
             }
+
+            if (granted) { onPermissionGranted(true); return; }
+
+            /* Re-check the OS state — the outcome after a failed request
+             * tells us WHY it failed. */
+            const after = await checkLocationPermission();
+
+            if (after === 'granted') {
+                /* Permission is fine but reading the position failed
+                 * (GPS services off / no satellites / timeout). */
+                const code = requestErr && requestErr.code;
+                setBanner(
+                    'denied',
+                    code === 3 ? 'GPS timed out' : 'Cannot read your location',
+                    'Location permission is granted but the GPS reading failed. Turn on Location services in Quick Settings, move near a window, then tap Retry.',
+                    true
+                );
+                if (enableBtn) enableBtn.lastChild.textContent = ' Retry ';
+                return;
+            }
+
+            if (after === 'denied') {
+                /* Popup is permanently suppressed — only Settings can restore. */
+                setBanner(
+                    'denied',
+                    'Location permission required',
+                    'Android is no longer showing the popup. Tap \u201cOpen Settings\u201d, set Location to \u201cAllow only while using the app\u201d, then come back here \u2014 this screen resumes automatically.',
+                    true
+                );
+                if (settingsBtn) settingsBtn.style.display = '';
+                if (skipBtn)     skipBtn.style.display     = 'none';
+                if (enableBtn)   enableBtn.lastChild.textContent = ' Retry ';
+                return;
+            }
+
+            /* Back to 'prompt' — the user just tapped \u201cDon\u2019t allow\u201d once. */
+            setBanner(
+                'denied',
+                'Location prompt dismissed',
+                'You can still allow access. Tap \u201cAllow Location\u201d to see the Android popup again, or Skip to type the address manually.',
+                true
+            );
             return;
         }
+
+        /* 4. Browser 'denied' — user previously blocked this site. */
+        if (state === 'denied') {
+            setBanner(
+                'denied',
+                'Location permission denied',
+                'Your browser has blocked location for this site. Click the \uD83D\uDD12 / location icon in the address bar, set Location to \u201cAllow\u201d, then press Retry.',
+                true
+            );
+            if (enableBtn) enableBtn.lastChild.textContent = ' Retry ';
+            return;
+        }
+
+        /* 5. Browser 'prompt' — needs an explicit user gesture. */
         setBanner(
             '',
             'Location access needed',
