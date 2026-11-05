@@ -1,16 +1,156 @@
 /* =====================================================
    RescueNet — local WiFi server config
-   Edit RN_SERVER if your PC's IP changes (run ipconfig).
-   All three apps (resident, admin, responder) and the
-   Capacitor WebView use this to reach the Node sync API.
+
+   Resolution order (first non-empty wins):
+     1. localStorage.rn_server_url_override   (user override from the Server panel)
+     2. window.RN_SERVER already set          (from config.runtime.js, which the
+                                                Node backend regenerates on startup
+                                                with the current LAN IP)
+     3. Fallback below                         (last-known / dev default)
 
    - RN_SERVER (HTTP :3000)          → used by the Capacitor APK
    - RN_SERVER_SECURE (HTTPS :3443)  → used when you open the app
      in a mobile browser so geolocation is allowed (Secure Context).
    Pages loaded over :3443 auto-detect their own origin and use HTTPS.
    ===================================================== */
-window.RN_SERVER = 'http://192.168.43.119:3000';
-window.RN_SERVER_SECURE = 'https://192.168.43.119:3443';
+(function () {
+  var FALLBACK_HTTP  = 'http://192.168.43.119:3000';
+  var FALLBACK_HTTPS = 'https://192.168.43.119:3443';
+
+  // 1) If we're already being served from the Node backend, same-origin wins.
+  var o = (window.location && window.location.origin) || '';
+  var isRealHttpOrigin = /^https?:\/\//.test(o) && !/localhost|127\.0\.0\.1|\[::1\]/.test(o);
+  var originIsSecure = /^https:\/\//.test(o);
+  var inferredHttp = isRealHttpOrigin ? o.replace(/^https:/, 'http:').replace(/:3443/, ':3000') : '';
+  var inferredHttps = isRealHttpOrigin && originIsSecure ? o : (isRealHttpOrigin ? o.replace(/^http:/, 'https:').replace(/:3000/, ':3443') : '');
+
+  // 2) Config precedence: localStorage > config.runtime.js > same-origin > fallback.
+  var ovHttp = '', ovHttps = '';
+  try {
+    ovHttp = (localStorage.getItem('rn_server_url_override') || '').trim();
+    ovHttps = (localStorage.getItem('rn_server_url_override_secure') || '').trim();
+  } catch (e) {}
+
+  var embeddedHttp = (window.RN_SERVER || '').trim();
+  var embeddedHttps = (window.RN_SERVER_SECURE || '').trim();
+
+  function pick(a, b, c, d) { return a || b || c || d || ''; }
+
+  window.RN_SERVER = pick(ovHttp, embeddedHttp, inferredHttp, FALLBACK_HTTP);
+  window.RN_SERVER_SECURE = pick(ovHttps, embeddedHttps, inferredHttps, FALLBACK_HTTPS);
+  window.RN_SERVER_SOURCE = ovHttp ? 'override'
+                              : embeddedHttp ? 'runtime'
+                              : inferredHttp ? 'same-origin'
+                              : 'fallback';
+
+  // 3) Self-heal probe. If the embedded URL is unreachable, ask /api/config on
+  //    any candidate we know about and adopt the first answer. This runs async
+  //    and only updates the runtime value for later fetches — the initial page
+  //    still uses whatever precedence resolved above.
+  window.RN_SERVER_HEAL = function () {
+    var candidates = [];
+    if (inferredHttp) candidates.push(inferredHttp);
+    if (embeddedHttp) candidates.push(embeddedHttp);
+    candidates.push(FALLBACK_HTTP);
+    candidates.push('http://localhost:3000');
+    var done = false;
+    function tryNext(i) {
+      if (done || i >= candidates.length) return;
+      var base = candidates[i];
+      fetch(base + '/api/config', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (cfg) {
+          if (done) return;
+          if (cfg && cfg.serverUrl) {
+            done = true;
+            window.RN_SERVER = cfg.serverUrl;
+            if (cfg.serverSecureUrl) window.RN_SERVER_SECURE = cfg.serverSecureUrl;
+            window.RN_LAN_IP = cfg.lanIp || '';
+            try { localStorage.setItem('rn_server_url_autodiscovered', cfg.serverUrl); } catch (e) {}
+            document.dispatchEvent(new CustomEvent('rnserverready', { detail: cfg }));
+          } else {
+            tryNext(i + 1);
+          }
+        })
+        .catch(function () { tryNext(i + 1); });
+    }
+    tryNext(0);
+  };
+
+  // 4) Public helper: prompt the user for a LAN URL override and persist it.
+  //    Any page can call RN_ShowServerPanel() (e.g. a "Server" gear in a topbar).
+  window.RN_ShowServerPanel = function () {
+    var current = window.RN_SERVER || '';
+    var input = window.prompt(
+      'RescueNet server URL\n' +
+      '(the LAN IP of the PC running node server.js)\n\n' +
+      'Examples:\n  http://192.168.0.197:3000\n  http://10.0.0.5:3000\n\n' +
+      'Leave empty to clear override and use the auto-detected value.',
+      current
+    );
+    if (input === null) return false;
+    input = String(input).trim();
+    if (!input) {
+      try {
+        localStorage.removeItem('rn_server_url_override');
+        localStorage.removeItem('rn_server_url_override_secure');
+      } catch (e) {}
+    } else {
+      if (!/^https?:\/\//.test(input)) input = 'http://' + input;
+      input = input.replace(/\/+$/, '');
+      if (!/:\d+/.test(input)) input += ':3000';
+      try {
+        localStorage.setItem('rn_server_url_override', input);
+        var secure = input.replace(/^http:/, 'https:').replace(/:3000/, ':3443');
+        localStorage.setItem('rn_server_url_override_secure', secure);
+      } catch (e) {}
+    }
+    window.location.reload();
+    return true;
+  };
+
+  // 5) Auto-heal on boot if the current URL is not answering within 2s.
+  window.RN_SERVER_HEALTH = function (timeoutMs) {
+    timeoutMs = timeoutMs || 2000;
+    return new Promise(function (resolve) {
+      var base = window.RN_SERVER;
+      if (!base) return resolve({ ok: false });
+      var ctrl = new AbortController();
+      var to = setTimeout(function () { ctrl.abort(); resolve({ ok: false, error: 'timeout' }); }, timeoutMs);
+      fetch(base + '/api/config', { signal: ctrl.signal, cache: 'no-store' })
+        .then(function (r) { clearTimeout(to); return r.ok ? r.json() : null; })
+        .then(function (cfg) { resolve({ ok: !!cfg, cfg: cfg }); })
+        .catch(function (e) { clearTimeout(to); resolve({ ok: false, error: (e && e.message) || 'error' }); });
+    });
+  };
+})();
+
+/* Kick off an early health probe. If the primary URL is dead, RN_SERVER_HEAL()
+ * walks the candidate list and fires 'rnserverready' once a live server answers.
+ * Every 15 s we re-check so we notice when the PC comes back online. */
+(function () {
+  function ping() {
+    window.RN_SERVER_HEALTH(2500).then(function (h) {
+      window.RN_SERVER_ONLINE = !!(h && h.ok);
+      if (h && h.cfg && h.cfg.serverUrl && h.cfg.serverUrl !== window.RN_SERVER) {
+        // Server told us its canonical LAN URL — adopt it if different from what
+        // we're currently calling (e.g. we were using the fallback after a 404).
+        try { localStorage.setItem('rn_server_url_autodiscovered', h.cfg.serverUrl); } catch (e) {}
+        document.dispatchEvent(new CustomEvent('rnserverready', { detail: h.cfg }));
+      }
+      if (!window.RN_SERVER_ONLINE && !window.__rn_heal_attempted) {
+        window.__rn_heal_attempted = true;
+        window.RN_SERVER_HEAL();
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(ping, 300); });
+  } else {
+    setTimeout(ping, 300);
+  }
+  setInterval(ping, 15000);
+})();
 
 /* =====================================================
    REAL-TIME LONG-POLL (works through CapacitorHttp)

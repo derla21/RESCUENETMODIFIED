@@ -2647,6 +2647,7 @@
 
 </div>
 
+<script src="config.runtime.js"></script>
 <script src="config.js"></script>
 <script>
     /* =====================================================
@@ -5756,6 +5757,40 @@
             resumeTrackingIfActive();
             goTo('sos-active');
         } catch(e){}
+    })();
+
+    /* =====================================================
+       SERVER PANEL (Capacitor LAN URL override)
+       - Long-press the profile chip to open the server prompt
+       - Small floating "Server" pill shows online/offline state
+       - Tap the pill to open the same prompt
+       ===================================================== */
+    (function initServerPanel() {
+        if (!window.RN_ShowServerPanel) return;
+        const chip = document.getElementById('profileChip');
+        if (chip) {
+            let lp = null;
+            const open = () => { window.RN_ShowServerPanel(); };
+            chip.addEventListener('pointerdown', () => { lp = setTimeout(open, 900); });
+            chip.addEventListener('pointerup',   () => { if (lp) { clearTimeout(lp); lp = null; } });
+            chip.addEventListener('pointerleave',() => { if (lp) { clearTimeout(lp); lp = null; } });
+            chip.addEventListener('contextmenu', (e) => { e.preventDefault(); open(); });
+        }
+        const pill = document.createElement('button');
+        pill.className = 'rn-server-pill';
+        pill.type = 'button';
+        pill.title = 'RescueNet server connection. Tap to configure.';
+        pill.style.cssText = 'position:fixed;left:10px;bottom:76px;z-index:9999;padding:4px 9px;border-radius:999px;border:1px solid rgba(16,45,92,0.14);background:rgba(255,255,255,0.94);color:#102d5c;font:600 10px/1 Inter,system-ui,sans-serif;letter-spacing:.3px;cursor:pointer;box-shadow:0 2px 8px rgba(16,45,92,0.12);display:flex;align-items:center;gap:5px;';
+        const dot = () => '<span style="width:6px;height:6px;border-radius:50%;background:' + (window.RN_SERVER_ONLINE ? '#22c55e' : '#f97316') + ';display:inline-block"></span>';
+        const render = () => {
+            const ip = (window.RN_LAN_IP || (window.RN_SERVER || '').replace(/^https?:\/\//, '').replace(/:\d+.*$/, '')) || '…';
+            pill.innerHTML = dot() + ' <span>' + ip + '</span>';
+        };
+        pill.addEventListener('click', () => window.RN_ShowServerPanel());
+        document.body.appendChild(pill);
+        render();
+        setInterval(render, 3000);
+        document.addEventListener('rnserverready', render);
     })();
 </script>
 

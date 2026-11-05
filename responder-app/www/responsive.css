@@ -1,0 +1,175 @@
+/* =====================================================
+   RescueNet — shared mobile sizing baseline
+   Applied AFTER each page's own <style> block so its
+   media queries override earlier rules by cascade order
+   (same specificity, later wins).
+
+   Contents:
+     1. Reset (tap-highlight, text-size-adjust, image max)
+     2. iOS input-zoom prevention (16px minimum)
+     3. Table horizontal scroll on phones
+     4. Safe-area insets (notch + home indicator)
+     5. Landscape on small phones
+     6. ≤ 500px — strip fake phone bezel (max-width fallback)
+     7. pointer: coarse — real device: full-viewport app shell
+     8. ≤ 380px — small phones (iPhone SE, older Galaxy A)
+     9. ≤ 340px — very narrow devices
+    10. Touch-friendly minimums (buttons, inputs, links)
+    11. Typography scale normalization
+   ===================================================== */
+
+/* ---------- 1. Reset / baseline ---------- */
+*, *::before, *::after { -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+img, video, canvas, svg { max-width: 100%; height: auto; }
+
+/* ---------- 2. iOS zoom-on-focus prevention ---------- */
+input[type], input:not([type="checkbox"]):not([type="radio"]),
+select, textarea { font-size: 16px; max-width: 100%; }
+
+/* ---------- 3. Tables scroll horizontally on phones ---------- */
+table { max-width: 100%; }
+table.tbl, .table-wrap, .tbl-wrap { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.tbl > thead, table.tbl > tbody,
+.table-wrap > table > thead, .table-wrap > table > tbody { display: table; width: 100%; }
+
+/* ---------- 4. Safe-area for notched phones ---------- */
+@supports (padding: max(0px)) {
+    body, .phone, .app, .mobile-app, .wrap, .screen, .app-header, .topbar {
+        padding-left:   max(0px, env(safe-area-inset-left));
+        padding-right:  max(0px, env(safe-area-inset-right));
+    }
+    .phone, .app, .mobile-app, body {
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+}
+
+/* ---------- 5. Landscape on small phones ---------- */
+@media (orientation: landscape) and (max-height: 560px) {
+    body { padding: 0; }
+    .phone, .app, .mobile-app { max-height: 100vh; height: auto; border-radius: 0; border: none; box-shadow: none; }
+    .wrap { margin: 8px auto; }
+}
+
+/* ---------- 6. ≤ 500px — remove fake bezel (any narrow viewport) ---------- */
+@media (max-width: 500px) {
+    body { padding: 0 !important; background: #ffffff; align-items: stretch; }
+    .phone, .app, .mobile-app, .wrap {
+        width: 100%; max-width: 100%;
+        margin: 0; border-radius: 0;
+        border-left: 0; border-right: 0;
+        box-shadow: none;
+    }
+    .phone, .app, .mobile-app { height: 100vh; height: 100dvh; min-height: 100vh; min-height: 100dvh; max-height: none; }
+    .screen, .content, .login-section, .register-section, .otp-section, .facial-section {
+        padding-left: 20px; padding-right: 20px;
+    }
+    h1, .h1, .welcome h1 { font-size: 26px; }
+    h2, .h2 { font-size: 20px; }
+    h3, .h3 { font-size: 16px; }
+    .actions { flex-wrap: wrap; }
+    .actions .btn, .actions button { width: 100%; }
+}
+
+/* ---------- 7. Real devices (pointer: coarse) — full-viewport app shell,
+   status-bar clearance, consistent internal section padding.
+   This runs AFTER section 6 so it wins on actual phones. ---------- */
+@media (pointer: coarse) {
+    body {
+        padding: 0 !important;
+        background: #ffffff;
+        align-items: stretch;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+    .phone, .app, .mobile-app {
+        width: 100vw;
+        max-width: none;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: 100vh;
+        height: 100dvh;
+        max-height: none;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+        /* Fake status-bar strip on non-notch phones, real notch on iPhone / edge-to-edge Android 15+ */
+        padding-top: max(env(safe-area-inset-top), 24px);
+        padding-bottom: max(env(safe-area-inset-bottom), 0px);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+    /* Auth / form pages: consistent section padding inside the fullscreen shell */
+    .login-section,
+    .register-section,
+    .otp-section,
+    .facial-section {
+        padding: 24px 22px 32px;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Keep dashboard header + content + responder topbar all aligned to the same gutter */
+    .content, .app-header, .topbar { padding-left: 22px; padding-right: 22px; }
+    .topbar { padding-top: 14px; padding-bottom: 10px; }
+    /* Floating pill bottom-nav: enough clearance on real phones so the pill's
+     * rounded corners + border are fully visible (not attached to the frame). */
+    .bottom-nav {
+        left:   calc(18px + env(safe-area-inset-left));
+        right:  calc(18px + env(safe-area-inset-right));
+        bottom: calc(18px + env(safe-area-inset-bottom));
+    }
+}
+
+/* ---------- 8. ≤ 380px — small phones ---------- */
+@media (max-width: 380px) {
+    .screen, .content, .app-header, .login-section, .register-section, .otp-section, .facial-section {
+        padding-left: 18px; padding-right: 18px;
+    }
+    .bottom-nav { left: 14px; right: 14px; bottom: 14px; }
+    h1, .h1, .welcome h1 { font-size: 22px; }
+    h2, .h2 { font-size: 17px; }
+    .brand, .brand-name { font-size: 12px; }
+    .field input, .input-box input { font-size: 15px; padding-top: 12px; padding-bottom: 12px; }
+    .btn, .login-button, .submit-button { padding: 10px 14px; font-size: 13px; }
+}
+
+/* ---------- 9. ≤ 340px — very narrow devices ---------- */
+@media (max-width: 340px) {
+    .screen, .content, .app-header, .login-section, .register-section, .otp-section, .facial-section {
+        padding-left: 14px; padding-right: 14px;
+    }
+    .bottom-nav { left: 10px; right: 10px; bottom: 10px; }
+    h1, .h1, .welcome h1 { font-size: 20px; }
+    h2, .h2 { font-size: 16px; }
+    .top-section { height: 160px; flex-basis: 160px; }
+    .logo { width: 200px; }
+    .username { font-size: 15.5px; }
+}
+
+/* ---------- 10. Touch-friendly minimum tap targets ---------- */
+button, .btn, a.btn, .pill, .chip-btn, .nav-item, .social,
+.login-button, .submit-button, .back-button, .otp-btn,
+.social-button, .qa-tile {
+    min-height: 44px;
+}
+button.icon-only, .m-x, .close, .x, .show-password, .bell, .icon-btn {
+    min-height: 34px; min-width: 34px;
+}
+/* Profile chip is a 42×42 circle — must stay square, so exclude it from min-height
+   (adding min-height alone would turn `border-radius: 50%` into an oval). */
+.profile-chip { min-height: 42px; min-width: 42px; }
+.input-box input, .field input, input[type="text"], input[type="email"],
+input[type="password"], input[type="tel"], input[type="number"] {
+    min-height: 48px;
+}
+
+/* ---------- 11. Typography scale normalization ---------- */
+@media (max-width: 500px) {
+    .welcome p, p.muted, .sub-text { font-size: 13px; line-height: 1.55; }
+    .form-group > label { font-size: 12px; margin-bottom: 6px; }
+    .register, .security { font-size: 12px; }
+}

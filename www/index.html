@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>RescueNet Login</title>
 
+    <script>
+        /* Runtime role detection.
+         * If the URL contains ?role=responder (or a stored preference is "responder"),
+         * this login page hands off to responder.html instead. Enables the shared
+         * webDir to serve both flows without a separate APK build swap. */
+        (function () {
+            try {
+                var params = new URLSearchParams(window.location.search || '');
+                var qRole = (params.get('role') || '').toLowerCase();
+                var stored = '';
+                try { stored = (localStorage.getItem('rn_role_hint') || '').toLowerCase(); } catch (e) {}
+                if (qRole === 'responder' || (!qRole && stored === 'responder' && !params.get('force_resident'))) {
+                    var dest = 'responder.html' + (window.location.search || '');
+                    window.location.replace(dest);
+                }
+            } catch (e) { /* no-op: fall through to normal login */ }
+        })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -777,6 +796,8 @@
 </div>
 
 
+<script src="config.runtime.js"></script>
+<script src="config.js"></script>
 <script>
 
     /* Server base (same pattern as other app pages) */

@@ -2121,6 +2121,7 @@ table.tbl > thead, table.tbl > tbody { display: table; width: 100%; }
 
 <div class="toast" id="toast"></div>
 
+<script src="config.runtime.js"></script>
 <script src="config.js"></script>
 <script>
 /* =====================================================
@@ -2154,39 +2155,62 @@ const STORE = {
     households: 'rn_household_statuses'
 };
 
-// Demo seed (only when nothing has been stored)
+// Demo seed disabled — all example residents, responders, households,
+// verification requests, announcements and resources have been removed
+// so the admin console starts with a clean slate. Real records flow in
+// through the server (POST /api/resident) and BroadcastChannel/SSE
+// events, and stay in whatever state the server put them in —
+// 'pending' by default until a barangay admin approves or rejects.
 const SEED = {
-    responders: [
-        { id:'RS001', name:'Ramon Dela Cruz', role:'Team Leader',   skill:'Medical / CPR',      phone:'0917-555-1001', status:'available', lat:13.3525, lng:123.7495 },
-        { id:'RS002', name:'Grace Villanueva',role:'First Responder',skill:'Fire / Rescue',       phone:'0917-555-1002', status:'available', lat:13.3481, lng:123.7532 },
-        { id:'RS003', name:'Jun Torre',       role:'Driver',         skill:'Ambulance',           phone:'0917-555-1003', status:'busy',      lat:13.3450, lng:123.7470 },
-        { id:'RS004', name:'Mhy Alonzo',      role:'Coordinator',    skill:'Comms / Evac',        phone:'0917-555-1004', status:'available', lat:13.3568, lng:123.7550 }
-    ],
-    verification: [
-        { id:'VF-A102', name:'Maria Santos', email:'maria.santos@gmail.com', phone:'0917-555-2201', idType:'National ID', documentName:'maria-id.jpg', facialMatch:0.94, submittedAt:new Date(Date.now()-3600e3*5).toISOString() },
-        { id:'VF-A103', name:'Pedro Ramirez', email:'pedro.r@yahoo.com',     phone:'0928-555-8899', idType:"Driver's License", documentName:'pedro-dl.png', facialMatch:0.89, submittedAt:new Date(Date.now()-3600e3*12).toISOString() },
-        { id:'VF-A104', name:'Liza Cruz',     email:'liza.cruz@gmail.com',   phone:'0905-555-3311', idType:'UMID', documentName:'liza-umid.pdf', facialMatch:0.91, submittedAt:new Date(Date.now()-3600e3*30).toISOString() }
-    ],
-    households: [
-        { id:'HH-301', residentName:'Alonzo Family', purok:'Purok 1', status:'Safe',            updatedAt:new Date(Date.now()-1000*60*45).toISOString(),  lat:13.3508, lng:123.7482, remarks:'4 members, all present' },
-        { id:'HH-302', residentName:'Reyes Household', purok:'Purok 2', status:'Need Assistance', updatedAt:new Date(Date.now()-1000*60*15).toISOString(), lat:13.3472, lng:123.7515, remarks:'Elderly + asthmatic child, low food stock' },
-        { id:'HH-303', residentName:'Torres Family', purok:'Purok 3', status:'Missing',         updatedAt:new Date(Date.now()-1000*60*5).toISOString(),   lat:13.3551, lng:123.7548, remarks:'Left home 6 hrs ago, no contact' },
-        { id:'HH-304', residentName:'Dizon Household', purok:'Purok 4', status:'Safe',          updatedAt:new Date(Date.now()-1000*60*180).toISOString(), lat:13.3440, lng:123.7460, remarks:'' },
-        { id:'HH-305', residentName:'Villamor Family', purok:'Purok 5', status:'No Update',     updatedAt:null,                                                            lat:13.3595, lng:123.7565, remarks:'' }
-    ],
-    announcements: [
-        { id:'AN001', title:'Yellow Rainstorm Warning — Purok 3 & 5', audience:'All residents',         body:'Heavy rains expected 6-10 PM. Prepare go-bags and monitor updates.',      createdAt:new Date(Date.now()-1000*60*120).toISOString(), pinned:true },
-        { id:'AN002', title:'Water interruption on Sept 30',           audience:'All residents',         body:'10:00 PM – 4:00 AM service stoppage for maintenance.',                    createdAt:new Date(Date.now()-1000*60*60*20).toISOString(), pinned:false },
-        { id:'AN003', title:'Free vaccination drive',                  audience:'Vulnerable households', body:'Community hall this Friday, 7 AM – 3 PM.',                                createdAt:new Date(Date.now()-1000*60*60*48).toISOString(), pinned:false }
-    ],
-    resources: [
-        { id:'RS-A', title:'First Aid Manual',            category:'Guide',      offline:true,  updated:new Date(Date.now()-1000*60*60*24*10).toISOString() },
-        { id:'RS-B', title:'Evacuation Routes – Taculing',category:'Procedure',  offline:true,  updated:new Date(Date.now()-1000*60*60*24*5).toISOString() },
-        { id:'RS-C', title:'72-Hour Emergency Kit',       category:'Checklist',  offline:true,  updated:new Date(Date.now()-1000*60*60*24*20).toISOString() },
-        { id:'RS-D', title:'Emergency Hotlines',          category:'Hotline',    offline:true,  updated:new Date(Date.now()-1000*60*60*24*2).toISOString() },
-        { id:'RS-E', title:'Typhoon Preparedness 101',    category:'Reminder',   offline:false, updated:new Date(Date.now()-1000*60*60*24*30).toISOString() }
-    ]
+    responders:     [],
+    verification:   [],
+    households:     [],
+    announcements:  [],
+    resources:      []
 };
+
+/* ---------- ONE-SHOT DEMO DATA PURGE (v1) ----------
+ * Browsers that visited dashboards.html before the SEED was emptied
+ * still have the demo responders / verification requests / households
+ * / announcements / resources cached in localStorage. Wipe them once
+ * per device so every admin sees the same clean slate. Marker key
+ * prevents repeat purges on future sessions (which would otherwise
+ * destroy legitimate admin-entered data). */
+(function purgeLegacySeed() {
+    const MARKER = 'rn_seed_purged_v1';
+    try {
+        if (localStorage.getItem(MARKER) === '1') return;
+        const ids = new Set([
+            // Responders
+            'RS001','RS002','RS003','RS004',
+            // Verification requests
+            'VF-A102','VF-A103','VF-A104',
+            // Households (HH-MINE is user-owned, keep it)
+            'HH-301','HH-302','HH-303','HH-304','HH-305',
+            // Announcements
+            'AN001','AN002','AN003',
+            // Resources
+            'RS-A','RS-B','RS-C','RS-D','RS-E'
+        ]);
+        const keys = [
+            'rn_responders', 'rn_verification_requests', 'rn_household_statuses',
+            'rn_announcements', 'rn_emergency_resources', 'rn_response_assignments'
+        ];
+        keys.forEach(k => {
+            try {
+                const raw = localStorage.getItem(k);
+                if (!raw) return;
+                const arr = JSON.parse(raw);
+                if (!Array.isArray(arr)) return;
+                const filtered = arr.filter(x => x && !ids.has(String(x.id || '')));
+                if (filtered.length !== arr.length) {
+                    localStorage.setItem(k, JSON.stringify(filtered));
+                }
+            } catch (e) {}
+        });
+        localStorage.setItem(MARKER, '1');
+    } catch (e) {}
+})();
 
 function initData() {
     if (!lsGet(STORE.responders))       lsSet(STORE.responders,       SEED.responders);

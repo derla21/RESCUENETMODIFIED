@@ -766,6 +766,7 @@
 </div>
 
 
+<script src="config.runtime.js"></script>
 <script src="config.js"></script>
 <script>
 
@@ -979,7 +980,10 @@
 
         otpInputs.forEach(function(input) {
 
-            otp += input.value;
+            // Only accept digits — protects against Android password-manager
+            // autofill inserting NBSP/spaces and Chrome's one-time-code
+            // handler filling a single field with the whole 6 digits.
+            otp += (input.value || '').replace(/[^0-9]/g, '').slice(0, 1);
 
         });
 

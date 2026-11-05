@@ -13,13 +13,30 @@
         integrity="sha256-20nQCchB9co0qIjJ2O9zXFGa2n+9h2IwlOJ1kQjXfCk="
         crossorigin=""
         onerror="if(!window.L){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';document.head.appendChild(s);}"></script>
+<!-- Server config must load before the bootstrap script so window.RN_SERVER is available.
+     This is what makes the app work inside Capacitor Android, where window.location.origin
+     is https://localhost but the backend lives on a LAN IP. -->
+<script src="config.runtime.js"></script>
+<script src="config.js"></script>
 <script>
     /* Async Google Maps JavaScript SDK bootstrap for auxiliary features.
      * Leaflet is the map engine; gmaps-shim.js is intentionally not loaded. */
     (function () {
         var o = (window.location && window.location.origin) || '';
-        var isNodeOrigin = o.indexOf('http') === 0 && o.indexOf('localhost') === -1;
-        var API_BASE = isNodeOrigin ? o : 'http://localhost:3000';
+        var inCapacitor = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        var isLocalhostOrigin = !o || o.indexOf('http') !== 0 || o.indexOf('localhost') !== -1 || o.indexOf('127.0.0.1') !== -1 || o === 'null' || o.indexOf('file:') === 0;
+        var configured = (window.RN_SERVER || '').toString().trim();
+        var API_BASE;
+        if (configured && (inCapacitor || isLocalhostOrigin)) {
+            // Inside the native APK (or a file:// preview), always use the LAN server
+            // from config.js — window.location.origin there is meaningless.
+            API_BASE = configured;
+        } else if (!isLocalhostOrigin) {
+            // Served by Node itself: same-origin wins.
+            API_BASE = o;
+        } else {
+            API_BASE = 'http://localhost:3000';
+        }
         window.RN_API_ORIGIN = API_BASE;
         window.RN_MAPS_READY = fetch(API_BASE + '/api/config', { cache: 'no-store' })
             .then(function (r) { return r.ok ? r.json() : null; })
@@ -1217,7 +1234,29 @@ body.map-fullscreen .stage { padding-top: 0; }
 
     <div class="toast" id="toast"></div>
 </div>
+<script src="config.runtime.js"></script>
 <script src="config.js"></script>
 <script src="responder.js"></script>
+<script>
+    /* Server connection pill — tap to configure the LAN URL override.
+     * Lets a responder retarget the APK at a new PC IP without a rebuild. */
+    (function initResponderServerPill() {
+        if (!window.RN_ShowServerPanel) return;
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.title = 'RescueNet server connection. Tap to configure.';
+        pill.style.cssText = 'position:fixed;right:10px;bottom:76px;z-index:9999;padding:5px 10px;border-radius:999px;border:1px solid rgba(16,45,92,0.14);background:rgba(255,255,255,0.94);color:#102d5c;font:600 10px/1 Inter,system-ui,sans-serif;letter-spacing:.3px;cursor:pointer;box-shadow:0 2px 8px rgba(16,45,92,0.12);display:flex;align-items:center;gap:6px;';
+        const dot = () => '<span style="width:6px;height:6px;border-radius:50%;background:' + (window.RN_SERVER_ONLINE ? '#22c55e' : '#f97316') + ';display:inline-block"></span>';
+        const render = () => {
+            const ip = (window.RN_LAN_IP || (window.RN_SERVER || '').replace(/^https?:\/\//, '').replace(/:\d+.*$/, '')) || '…';
+            pill.innerHTML = dot() + ' <span>' + ip + '</span>';
+        };
+        pill.addEventListener('click', () => window.RN_ShowServerPanel());
+        document.body.appendChild(pill);
+        render();
+        setInterval(render, 3000);
+        document.addEventListener('rnserverready', render);
+    })();
+</script>
 </body>
 </html>
